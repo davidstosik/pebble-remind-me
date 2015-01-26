@@ -12,7 +12,7 @@ Reminder reminders[MAX_REMINDERS];
 int reminders_count;
 Reminder reminder;
 
-void init_reminder(Reminder*);
+void init_reminder();
 
 void add_reminder(Reminder);
 

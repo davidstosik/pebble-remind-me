@@ -1,5 +1,9 @@
-#include "main.h"
 #include <pebble.h>
+#include "main.h"
+#include "reminder.h"
+
+static char count_txt[BUF_LEN];
+static char last_txt[BUF_LEN];
 
 // BEGIN AUTO-GENERATED UI CODE; DO NOT MODIFY
 static Window *s_window;
@@ -57,28 +61,44 @@ static void handle_window_unload(Window* window) {
   destroy_ui();
 }
 
-// static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-//   text_layer_set_text(main_label, "Save and quit");
-//   count = add_reminder(reminders, curr_rmndr, count);
-//   save_reminders(reminders, count);
-//   window_stack_pop(true);
-// }
+static void update_count() {
+  snprintf(count_txt, BUF_LEN, "Count:%d", reminders_count);
+  text_layer_set_text(count_label, count_txt);
+}
 
-// static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
-//   text_layer_set_text(main_label, "Up");
-// //   add_reminder();
-//   update_count();
-// }
+static void update_last() {
+  if (reminders_count > 0) {
+    time_t last = reminders[reminders_count-1].created_at;
+    strftime(last_txt, BUF_LEN, "%T", localtime(&last));
+  } else {
+    snprintf(last_txt, BUF_LEN, "empty...");
+  }
+  
+  text_layer_set_text(last_label, last_txt);
+}
 
-// static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
-//   text_layer_set_text(main_label, "Down");
-//   update_last();
-// }
+static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+  text_layer_set_text(main_label, "Save and quit");
+  add_reminder(reminder);
+  save_reminders();
+  window_stack_pop(true);
+}
+
+static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
+  text_layer_set_text(main_label, "Up");
+//   add_reminder();
+  update_count();
+}
+
+static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
+  text_layer_set_text(main_label, "Down");
+  update_last();
+}
 
 static void click_config_provider(void *context) {
-//   window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
-//   window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
-//   window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
+  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
+  window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
+  window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
 }
 
 void show_main(void) {

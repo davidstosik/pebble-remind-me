@@ -6,8 +6,8 @@ Reminder reminders[MAX_REMINDERS];
 int reminders_count;
 Reminder reminder;
 
-void init_reminder(Reminder *o) {
-  o->created_at = time(NULL);
+void init_reminder() {
+  reminder.created_at = time(NULL);
 }
 
 int sizeof_reminder() {
