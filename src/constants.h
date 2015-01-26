@@ -1,0 +1,4 @@
+#define MAX_REMINDERS 64
+#define BUF_LEN 32
+#define REMINDERS_KEY 1
+#define LONG_CLICK 500

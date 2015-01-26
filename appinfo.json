@@ -1,0 +1,19 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "david.stosik+pebble@gmail.com",
+    "longName": "ReminderMe",
+    "projectType": "native",
+    "resources": {
+        "media": []
+    },
+    "shortName": "RemindMe",
+    "uuid": "7ebdf59d-717e-4a12-9f39-a11a65dd0e26",
+    "versionCode": 1,
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}
