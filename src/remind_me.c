@@ -5,25 +5,33 @@
 #include "notif.h"
 #include "main.h"
 
-static Window *window;
+static void wakeup_handler(WakeupId id, int32_t reason) {
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "METHOD - %s", "wakeup_handler");
+  schedule_next_reminder_wakeup();
+  show_notif(id, reason);
+}
 
 static void init(void) {
   APP_LOG(APP_LOG_LEVEL_DEBUG, "METHOD - %s", "init");
-  load_reminders();
+//   load_reminders();
   
-  if (launch_reason() == APP_LAUNCH_WAKEUP) {
+  //if (launch_reason() == APP_LAUNCH_WAKEUP) {
+  WakeupId id = 0;
+  int32_t reason = 0;
+  if (wakeup_get_launch_event(&id, &reason)) {
     // load_triggered_reminder
-    show_notif();
+    wakeup_handler(id, reason);
   } else {
-    // FIXME maybe reminder time should be set only on exit.
-    init_reminder();
     show_main();
   }
+  
+  wakeup_service_subscribe(wakeup_handler);
 }
 
 static void deinit(void) {
-  // FIXME should this go somewhere else?
-  window_destroy(window);
+//   schedule_next_reminder_wakeup();
+//   save_reminders();
+  push_reminder();
 }
 
 int main(void) {

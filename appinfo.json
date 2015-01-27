@@ -7,7 +7,43 @@
     "longName": "ReminderMe",
     "projectType": "native",
     "resources": {
-        "media": []
+        "media": [
+            {
+                "file": "images/actionbar2.png",
+                "name": "BG_ACTIONBAR_2",
+                "type": "png"
+            },
+            {
+                "file": "images/actionbar1.png",
+                "name": "BG_ACTIONBAR_1",
+                "type": "png"
+            },
+            {
+                "file": "images/back_bar.png",
+                "name": "BG_BACKBAR",
+                "type": "png"
+            },
+            {
+                "file": "images/x.png",
+                "name": "ICON_X",
+                "type": "png"
+            },
+            {
+                "file": "images/tag.png",
+                "name": "ICON_TAG",
+                "type": "png"
+            },
+            {
+                "file": "images/tick.png",
+                "name": "ICON_TICK",
+                "type": "png"
+            },
+            {
+                "file": "images/alarm.png",
+                "name": "ICON_ALARM",
+                "type": "png"
+            }
+        ]
     },
     "shortName": "RemindMe",
     "uuid": "7ebdf59d-717e-4a12-9f39-a11a65dd0e26",

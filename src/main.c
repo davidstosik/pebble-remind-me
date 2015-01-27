@@ -1,59 +1,114 @@
 #include <pebble.h>
 #include "main.h"
 #include "reminder.h"
+#include "snooze_option.h"
+  
+#define SNOOZE_OPT_START TEN_MIN
 
-static char count_txt[BUF_LEN];
-static char last_txt[BUF_LEN];
+static int curr_snooze_opt;
 
 // BEGIN AUTO-GENERATED UI CODE; DO NOT MODIFY
 static Window *s_window;
-static TextLayer *main_label;
-static TextLayer *bottom_label;
-static TextLayer *last_label;
-static TextLayer *count_label;
-static ActionBarLayer *actionbar;
+static GFont s_res_gothic_14;
+static GFont s_res_gothic_28_bold;
+static GBitmap *s_res_bg_backbar;
+static GBitmap *s_res_icon_x;
+static GBitmap *s_res_bg_actionbar_1;
+static GBitmap *s_res_bg_actionbar_2;
+static GBitmap *s_res_icon_tick;
+static GBitmap *s_res_icon_tag;
+static GBitmap *s_res_icon_alarm;
+static TextLayer *list_help;
+static TextLayer *label_snooze;
+static BitmapLayer *bg_backbar;
+static BitmapLayer *icon_x;
+static BitmapLayer *bg_actionbar_top;
+static BitmapLayer *bg_actionbar_bottom;
+static BitmapLayer *icon_tick;
+static BitmapLayer *icon_tag;
+static BitmapLayer *icon_alarm;
 
 static void initialise_ui(void) {
   s_window = window_create();
   window_set_fullscreen(s_window, false);
   
-  // main_label
-  main_label = text_layer_create(GRect(0, 66, 124, 20));
-  text_layer_set_text(main_label, "Press a button");
-  text_layer_set_text_alignment(main_label, GTextAlignmentCenter);
-  layer_add_child(window_get_root_layer(s_window), (Layer *)main_label);
+  s_res_gothic_14 = fonts_get_system_font(FONT_KEY_GOTHIC_14);
+  s_res_gothic_28_bold = fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD);
+  s_res_bg_backbar = gbitmap_create_with_resource(RESOURCE_ID_BG_BACKBAR);
+  s_res_icon_x = gbitmap_create_with_resource(RESOURCE_ID_ICON_X);
+  s_res_bg_actionbar_1 = gbitmap_create_with_resource(RESOURCE_ID_BG_ACTIONBAR_1);
+  s_res_bg_actionbar_2 = gbitmap_create_with_resource(RESOURCE_ID_BG_ACTIONBAR_2);
+  s_res_icon_tick = gbitmap_create_with_resource(RESOURCE_ID_ICON_TICK);
+  s_res_icon_tag = gbitmap_create_with_resource(RESOURCE_ID_ICON_TAG);
+  s_res_icon_alarm = gbitmap_create_with_resource(RESOURCE_ID_ICON_ALARM);
+  // list_help
+  list_help = text_layer_create(GRect(60, 5, 60, 28));
+  text_layer_set_text(list_help, "Long press for list");
+  text_layer_set_text_alignment(list_help, GTextAlignmentRight);
+  text_layer_set_font(list_help, s_res_gothic_14);
+  layer_add_child(window_get_root_layer(s_window), (Layer *)list_help);
   
-  // bottom_label
-  bottom_label = text_layer_create(GRect(0, 128, 124, 20));
-  text_layer_set_text(bottom_label, "Down to show last");
-  text_layer_set_text_alignment(bottom_label, GTextAlignmentCenter);
-  layer_add_child(window_get_root_layer(s_window), (Layer *)bottom_label);
+  // label_snooze
+  label_snooze = text_layer_create(GRect(3, 65, 124, 33));
+  text_layer_set_text(label_snooze, "Text layer");
+  text_layer_set_text_alignment(label_snooze, GTextAlignmentCenter);
+  text_layer_set_font(label_snooze, s_res_gothic_28_bold);
+  layer_add_child(window_get_root_layer(s_window), (Layer *)label_snooze);
   
-  // last_label
-  last_label = text_layer_create(GRect(0, 108, 124, 20));
-  text_layer_set_text(last_label, "Text layer");
-  text_layer_set_text_alignment(last_label, GTextAlignmentCenter);
-  layer_add_child(window_get_root_layer(s_window), (Layer *)last_label);
+  // bg_backbar
+  bg_backbar = bitmap_layer_create(GRect(0, 3, 20, 36));
+  bitmap_layer_set_bitmap(bg_backbar, s_res_bg_backbar);
+  layer_add_child(window_get_root_layer(s_window), (Layer *)bg_backbar);
   
-  // count_label
-  count_label = text_layer_create(GRect(0, 0, 60, 20));
-  text_layer_set_text(count_label, "Count?");
-  layer_add_child(window_get_root_layer(s_window), (Layer *)count_label);
+  // icon_x
+  icon_x = bitmap_layer_create(GRect(1, 12, 18, 18));
+  bitmap_layer_set_bitmap(icon_x, s_res_icon_x);
+  layer_add_child(window_get_root_layer(s_window), (Layer *)icon_x);
   
-  // actionbar
-  actionbar = action_bar_layer_create();
-  action_bar_layer_add_to_window(actionbar, s_window);
-  action_bar_layer_set_background_color(actionbar, GColorBlack);
-  layer_add_child(window_get_root_layer(s_window), (Layer *)actionbar);
+  // bg_actionbar_top
+  bg_actionbar_top = bitmap_layer_create(GRect(124, 3, 20, 36));
+  bitmap_layer_set_bitmap(bg_actionbar_top, s_res_bg_actionbar_1);
+  layer_add_child(window_get_root_layer(s_window), (Layer *)bg_actionbar_top);
+  
+  // bg_actionbar_bottom
+  bg_actionbar_bottom = bitmap_layer_create(GRect(124, 52, 20, 97));
+  bitmap_layer_set_bitmap(bg_actionbar_bottom, s_res_bg_actionbar_2);
+  layer_add_child(window_get_root_layer(s_window), (Layer *)bg_actionbar_bottom);
+  
+  // icon_tick
+  icon_tick = bitmap_layer_create(GRect(125, 12, 18, 18));
+  bitmap_layer_set_bitmap(icon_tick, s_res_icon_tick);
+  layer_add_child(window_get_root_layer(s_window), (Layer *)icon_tick);
+  
+  // icon_tag
+  icon_tag = bitmap_layer_create(GRect(125, 115, 18, 18));
+  bitmap_layer_set_bitmap(icon_tag, s_res_icon_tag);
+  layer_add_child(window_get_root_layer(s_window), (Layer *)icon_tag);
+  
+  // icon_alarm
+  icon_alarm = bitmap_layer_create(GRect(125, 68, 18, 18));
+  bitmap_layer_set_bitmap(icon_alarm, s_res_icon_alarm);
+  layer_add_child(window_get_root_layer(s_window), (Layer *)icon_alarm);
 }
 
 static void destroy_ui(void) {
   window_destroy(s_window);
-  text_layer_destroy(main_label);
-  text_layer_destroy(bottom_label);
-  text_layer_destroy(last_label);
-  text_layer_destroy(count_label);
-  action_bar_layer_destroy(actionbar);
+  text_layer_destroy(list_help);
+  text_layer_destroy(label_snooze);
+  bitmap_layer_destroy(bg_backbar);
+  bitmap_layer_destroy(icon_x);
+  bitmap_layer_destroy(bg_actionbar_top);
+  bitmap_layer_destroy(bg_actionbar_bottom);
+  bitmap_layer_destroy(icon_tick);
+  bitmap_layer_destroy(icon_tag);
+  bitmap_layer_destroy(icon_alarm);
+  gbitmap_destroy(s_res_bg_backbar);
+  gbitmap_destroy(s_res_icon_x);
+  gbitmap_destroy(s_res_bg_actionbar_1);
+  gbitmap_destroy(s_res_bg_actionbar_2);
+  gbitmap_destroy(s_res_icon_tick);
+  gbitmap_destroy(s_res_icon_tag);
+  gbitmap_destroy(s_res_icon_alarm);
 }
 // END AUTO-GENERATED UI CODE
 
@@ -61,48 +116,55 @@ static void handle_window_unload(Window* window) {
   destroy_ui();
 }
 
-static void update_count() {
-  snprintf(count_txt, BUF_LEN, "Count:%d", reminders_count);
-  text_layer_set_text(count_label, count_txt);
+static void update_snooze_label() {
+  text_layer_set_text(label_snooze, get_snooze_options((time_t)0)[curr_snooze_opt].label);
 }
 
-static void update_last() {
-  if (reminders_count > 0) {
-    time_t last = reminders[reminders_count-1].created_at;
-    strftime(last_txt, BUF_LEN, "%T", localtime(&last));
-  } else {
-    snprintf(last_txt, BUF_LEN, "empty...");
-  }
+static void init_status() {
+  curr_snooze_opt = SNOOZE_OPT_START;
+}
+
+static void ui_custom_code() {
+  bitmap_layer_set_compositing_mode(icon_x, GCompOpSet);
+  bitmap_layer_set_compositing_mode(icon_tick, GCompOpSet);
+  bitmap_layer_set_compositing_mode(icon_alarm, GCompOpSet);
+  bitmap_layer_set_compositing_mode(icon_tag, GCompOpSet);
   
-  text_layer_set_text(last_label, last_txt);
+  update_snooze_label();
 }
 
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-  text_layer_set_text(main_label, "Save and quit");
-  add_reminder(reminder);
-  save_reminders();
-  window_stack_pop(true);
+  curr_snooze_opt = next_snooze_opt_key(curr_snooze_opt);
+  update_snooze_label();
 }
 
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
-  text_layer_set_text(main_label, "Up");
-//   add_reminder();
-  update_count();
+  push_reminder(curr_snooze_opt);
+  window_stack_pop(true);
 }
 
 static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
-  text_layer_set_text(main_label, "Down");
-  update_last();
+}
+
+static bool list_help_bg = GColorWhite;
+static void up_long_click_down_handler(ClickRecognizerRef recognizer, void *context) {
+  text_layer_set_text_color(list_help, list_help_bg);
+  list_help_bg = list_help_bg == GColorBlack ? GColorWhite : GColorBlack;
+  text_layer_set_background_color(list_help, list_help_bg);
 }
 
 static void click_config_provider(void *context) {
   window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
+  window_long_click_subscribe(BUTTON_ID_UP, LONG_CLICK, up_long_click_down_handler, NULL);
   window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
   window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
 }
 
 void show_main(void) {
+  init_status();
+
   initialise_ui();
+  ui_custom_code();
   window_set_window_handlers(s_window, (WindowHandlers) {
     .unload = handle_window_unload,
   });
