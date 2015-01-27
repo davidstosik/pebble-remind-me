@@ -1,20 +1,27 @@
+#pragma once
 #include <pebble.h>
 #include "constants.h"
 
 struct ReminderStruct {
   time_t created_at;
-  WakeupId wakeup_id;
+  time_t schedule_at;
+  short snooze_opt;
 };
 
 typedef struct ReminderStruct Reminder;
 
-Reminder reminders[MAX_REMINDERS];
-int reminders_count;
-Reminder reminder;
+// Reminder reminders[MAX_REMINDERS];
+// int reminders_count;
+// Reminder reminder;
 
-void init_reminder();
+Reminder* new_reminder();
 
-void add_reminder(Reminder);
+Reminder persist_read_reminder(int);
+int persist_reminder_count();
+int persist_reminder_start();
+void push_reminder(Reminder*);
 
-void save_reminders();
-void load_reminders();
+// void save_reminders();
+// void load_reminders();
+
+// void schedule_next_reminder_wakeup();

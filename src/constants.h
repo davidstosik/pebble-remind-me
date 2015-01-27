@@ -1,4 +1,16 @@
+#define DEBUG true
+
 #define MAX_REMINDERS 64
 #define BUF_LEN 32
-#define REMINDERS_KEY 1
 #define LONG_CLICK 500
+  
+#define SNOOZE_DEFAULT TEN_MIN
+
+// Memory indexes.
+#define WAKEUP_ID_KEY 0
+#define REMINDERS_KEY 1
+  
+#define REMINDERS_DEFAULT_START_KEY 10000
+#define REMINDERS_START_KEY_MARGIN  1000
+#define REMINDERS_COUNT_KEY         2
+#define REMINDERS_START_KEY         3

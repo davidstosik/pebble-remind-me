@@ -1,2 +1,2 @@
-void show_notif(void);
+void show_notif(int, int);
 void hide_notif(void);
