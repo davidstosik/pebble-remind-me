@@ -1,38 +1,43 @@
 #include <pebble.h>
-#include "constants.h"
 #include "snooze_option.h"
-  
-static SnoozeOption snooze_options[SNOOZE_OPT_N];
 
-SnoozeOption* get_snooze_options(time_t now) {
+static SnoozeOption options[SNOOZE_OPT_N];
+
+SnoozeOption* snooze_options() {
   static bool set = false;
   if(!set) {
-    strcpy(snooze_options[NEVER].label, "Never");
-    strcpy(snooze_options[TEN_MIN].label, "10 min.");
-    strcpy(snooze_options[ONE_HR].label, "1 hour");
-    strcpy(snooze_options[SIX_HRS].label, "6 hours");
-    strcpy(snooze_options[ONE_DAY].label, "1 day");
-  }
-  if(now) {
-    if(DEBUG) {
-      snooze_options[NEVER].time = now + 0;
-      snooze_options[TEN_MIN].time = now + 5;
-      snooze_options[ONE_HR].time = now + 15;
-      snooze_options[SIX_HRS].time = now + 30;
-      snooze_options[ONE_DAY].time = now + 60;
-    } else {
-      snooze_options[NEVER].time = now + 0;
-      snooze_options[TEN_MIN].time = now + 600;
-      snooze_options[ONE_HR].time = now + 3600;
-      snooze_options[SIX_HRS].time = now + 21400;
-      snooze_options[ONE_DAY].time = now + 86400;
+    for (int i = 0; i < SNOOZE_OPT_N - 1; i++) {
+      options[i] = NEVER + i;
     }
+    set = true;
   }
-  return snooze_options;
+  return options;
 }
 
-int next_snooze_opt_key(int current) {
-  int next = current + 1;
+char * snooze_label(SnoozeOption option) {
+  switch(option) {
+    case NEVER:   return "Never"   ;
+    case TEN_MIN: return "10 min." ;
+    case ONE_HR:  return "1 hour"  ;
+    case SIX_HRS: return "6 hours" ;
+    case ONE_DAY: return "1 day"   ;
+    default:      return "Unknown" ;
+  }
+}
+
+time_t snooze_time(SnoozeOption option, time_t now) {
+  switch(option) {
+    case NEVER:   return 0;
+    case TEN_MIN: return now + (DEBUG ? 5  : 600   );
+    case ONE_HR:  return now + (DEBUG ? 15 : 3600  );
+    case SIX_HRS: return now + (DEBUG ? 30 : 21400 );
+    case ONE_DAY: return now + (DEBUG ? 60 : 86400 );
+    default:      return 0;
+  }
+}
+
+SnoozeOption next_snooze_opt_key(SnoozeOption current) {
+  SnoozeOption next = current + 1;
   next = next >= SNOOZE_OPT_N ? 0 : next;
   return next;
 }

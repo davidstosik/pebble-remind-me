@@ -1,5 +1,7 @@
 #include <pebble.h>
 #include "main.h"
+#include "list.h"
+#include "constants.h"
 #include "reminder.h"
 #include "snooze_option.h"
 
@@ -30,7 +32,7 @@ static BitmapLayer *icon_alarm;
 static void initialise_ui(void) {
   s_window = window_create();
   window_set_fullscreen(s_window, false);
-  
+
   s_res_gothic_14 = fonts_get_system_font(FONT_KEY_GOTHIC_14);
   s_res_gothic_28_bold = fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD);
   s_res_bg_backbar = gbitmap_create_with_resource(RESOURCE_ID_BG_BACKBAR);
@@ -46,44 +48,44 @@ static void initialise_ui(void) {
   text_layer_set_text_alignment(list_help, GTextAlignmentRight);
   text_layer_set_font(list_help, s_res_gothic_14);
   layer_add_child(window_get_root_layer(s_window), (Layer *)list_help);
-  
+
   // label_snooze
   label_snooze = text_layer_create(GRect(3, 65, 124, 33));
   text_layer_set_text(label_snooze, "Text layer");
   text_layer_set_text_alignment(label_snooze, GTextAlignmentCenter);
   text_layer_set_font(label_snooze, s_res_gothic_28_bold);
   layer_add_child(window_get_root_layer(s_window), (Layer *)label_snooze);
-  
+
   // bg_backbar
   bg_backbar = bitmap_layer_create(GRect(0, 3, 20, 36));
   bitmap_layer_set_bitmap(bg_backbar, s_res_bg_backbar);
   layer_add_child(window_get_root_layer(s_window), (Layer *)bg_backbar);
-  
+
   // icon_x
   icon_x = bitmap_layer_create(GRect(1, 12, 18, 18));
   bitmap_layer_set_bitmap(icon_x, s_res_icon_x);
   layer_add_child(window_get_root_layer(s_window), (Layer *)icon_x);
-  
+
   // bg_actionbar_top
   bg_actionbar_top = bitmap_layer_create(GRect(124, 3, 20, 36));
   bitmap_layer_set_bitmap(bg_actionbar_top, s_res_bg_actionbar_1);
   layer_add_child(window_get_root_layer(s_window), (Layer *)bg_actionbar_top);
-  
+
   // bg_actionbar_bottom
   bg_actionbar_bottom = bitmap_layer_create(GRect(124, 52, 20, 97));
   bitmap_layer_set_bitmap(bg_actionbar_bottom, s_res_bg_actionbar_2);
   layer_add_child(window_get_root_layer(s_window), (Layer *)bg_actionbar_bottom);
-  
+
   // icon_tick
   icon_tick = bitmap_layer_create(GRect(125, 12, 18, 18));
   bitmap_layer_set_bitmap(icon_tick, s_res_icon_tick);
   layer_add_child(window_get_root_layer(s_window), (Layer *)icon_tick);
-  
+
   // icon_tag
   icon_tag = bitmap_layer_create(GRect(125, 115, 18, 18));
   bitmap_layer_set_bitmap(icon_tag, s_res_icon_tag);
   layer_add_child(window_get_root_layer(s_window), (Layer *)icon_tag);
-  
+
   // icon_alarm
   icon_alarm = bitmap_layer_create(GRect(125, 68, 18, 18));
   bitmap_layer_set_bitmap(icon_alarm, s_res_icon_alarm);
@@ -113,10 +115,12 @@ static void destroy_ui(void) {
 
 static void handle_window_unload(Window* window) {
   destroy_ui();
+  free(reminder);
+
 }
 
 static void update_snooze_label() {
-  text_layer_set_text(label_snooze, get_snooze_options((time_t)0)[reminder->snooze_opt].label);
+  text_layer_set_text(label_snooze,  snooze_label(reminder->snooze_opt));
 }
 
 static void init_status() {
@@ -128,7 +132,7 @@ static void ui_custom_code() {
   bitmap_layer_set_compositing_mode(icon_tick, GCompOpSet);
   bitmap_layer_set_compositing_mode(icon_alarm, GCompOpSet);
   bitmap_layer_set_compositing_mode(icon_tag, GCompOpSet);
-  
+
   update_snooze_label();
 }
 
@@ -138,20 +142,28 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
 }
 
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "METHOD - %s", "up_click_handler");
-  push_reminder(reminder);
-  free(reminder);
+  persist_push_reminder(reminder);
   window_stack_pop(true);
 }
 
 static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
 }
 
-static bool list_help_bg = GColorWhite;
-static void up_long_click_down_handler(ClickRecognizerRef recognizer, void *context) {
+static void flash() {
+  static bool list_help_bg = GColorWhite;
   text_layer_set_text_color(list_help, list_help_bg);
   list_help_bg = list_help_bg == GColorBlack ? GColorWhite : GColorBlack;
   text_layer_set_background_color(list_help, list_help_bg);
+}
+
+static void up_long_click_down_handler(ClickRecognizerRef recognizer, void *context) {
+  show_list();
+}
+
+static void down_long_click_down_handler(ClickRecognizerRef recognizer, void *context) {
+  flash();
+  persist_destroy_all_reminders();
+  app_timer_register(100, flash, NULL);
 }
 
 static void click_config_provider(void *context) {
@@ -159,18 +171,18 @@ static void click_config_provider(void *context) {
   window_long_click_subscribe(BUTTON_ID_UP, LONG_CLICK, up_long_click_down_handler, NULL);
   window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
   window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
+  window_long_click_subscribe(BUTTON_ID_DOWN, LONG_CLICK, down_long_click_down_handler, NULL);
 }
 
 void show_main(void) {
   init_status();
-
   initialise_ui();
   ui_custom_code();
+
   window_set_window_handlers(s_window, (WindowHandlers) {
     .unload = handle_window_unload,
   });
   window_set_click_config_provider(s_window, click_config_provider);
-  
   window_stack_push(s_window, true);
 }
 

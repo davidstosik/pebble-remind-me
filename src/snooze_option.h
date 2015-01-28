@@ -1,21 +1,41 @@
+#pragma once
 #include <pebble.h>
+#include "constants.h"
 
-#define NEVER      0
-#define TEN_MIN    1
-#define ONE_HR     2
-#define SIX_HRS    3
-#define ONE_DAY    4
-  
+// FIXME: maybe there's another way to get the number of item in enum
 #define SNOOZE_OPT_N 5
   
-#define SNOOZE_LABEL_MAX_SIZE 64
+typedef enum {
+  NEVER = 0,
+  TEN_MIN,
+  ONE_HR,
+  SIX_HRS,
+  ONE_DAY,
+} SnoozeOption;
 
-struct SnoozeOptionStruct {
-  char label[SNOOZE_LABEL_MAX_SIZE];
-  time_t time;
-};
+/**
+ * @return the list of available SnoozeOptions. 
+ */
+SnoozeOption* snooze_options();
 
-typedef struct SnoozeOptionStruct SnoozeOption;
+/**
+ * Return a label corresponding a SnoozeOption.
+ * @param option a key from SnoozeOption enum.
+ * @return the corresponding label.
+ */
+char * snooze_label(SnoozeOption option);
 
-SnoozeOption* get_snooze_options(time_t);
-int next_snooze_opt_key(int);
+/**
+ * Return the time associated to a snooze option.
+ * @param option a key from SnoozeOption enum.
+ * @param now a starting point from which to compute the snooze time.
+ * @return the time at which snooze should happen.
+ */
+time_t snooze_time(SnoozeOption option, time_t now);
+
+/**
+ * Return the next SnoozeOption in the list.
+ * @param current a SnoozeOption.
+ * @return the next SnoozeOption in the list (or the first if end was reached).
+ */
+SnoozeOption next_snooze_opt_key(SnoozeOption current);
