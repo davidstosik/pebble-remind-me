@@ -1,7 +1,7 @@
 #include <pebble.h>
 #include "notif.h"
 #include "snooze_option.h"
-#include "main.h"
+#include "add.h"
 #include "reminder.h"
 #include "persist_reminders.h"
 #include "tools.h"
