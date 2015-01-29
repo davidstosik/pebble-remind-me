@@ -1,12 +1,15 @@
 #include <pebble.h>
 #include "main.h"
+#include "remind_me.h"
 #include "list.h"
 #include "constants.h"
 #include "reminder.h"
+#include "persist_reminders.h"
 #include "snooze_option.h"
+#include "debug.h"
 
 // static int curr_snooze_opt;
-static Reminder *reminder;
+static Reminder *reminder_ptr;
 
 // BEGIN AUTO-GENERATED UI CODE; DO NOT MODIFY
 static Window *s_window;
@@ -115,16 +118,15 @@ static void destroy_ui(void) {
 
 static void handle_window_unload(Window* window) {
   destroy_ui();
-  free(reminder);
-
+  free(reminder_ptr);
 }
 
 static void update_snooze_label() {
-  text_layer_set_text(label_snooze,  snooze_label(reminder->snooze_opt));
+  text_layer_set_text(label_snooze,  snooze_label(reminder_ptr->snooze_opt));
 }
 
 static void init_status() {
-  reminder = new_reminder();
+  reminder_ptr = new_reminder();
 }
 
 static void ui_custom_code() {
@@ -137,13 +139,16 @@ static void ui_custom_code() {
 }
 
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-  reminder->snooze_opt = next_snooze_opt_key(reminder->snooze_opt);
+  reminder_ptr->snooze_opt = next_snooze_opt_key(reminder_ptr->snooze_opt);
   update_snooze_label();
 }
 
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
-  persist_push_reminder(reminder);
-  window_stack_pop(true);
+  reminder_ptr->created_at = time(NULL);
+  reminder_compute_schedule_at(reminder_ptr);
+  reminder_insert(*reminder_ptr, &reminders, &reminders_qty);
+  
+  hide_main();
 }
 
 static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
@@ -162,7 +167,8 @@ static void up_long_click_down_handler(ClickRecognizerRef recognizer, void *cont
 
 static void down_long_click_down_handler(ClickRecognizerRef recognizer, void *context) {
   flash();
-  persist_destroy_all_reminders();
+  persist_reminders_destroy_all();
+  reminders_qty = 0;
   app_timer_register(100, flash, NULL);
 }
 

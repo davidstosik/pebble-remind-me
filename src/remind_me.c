@@ -9,7 +9,7 @@
 #if DEBUG
 #include "debug.h"
 #endif
-  
+
 Reminder* reminders;
 int reminders_qty;
 
@@ -30,8 +30,10 @@ static void init(void) {
   }
 
   reminders_qty = persist_reminders_get_size();
-  reminders = malloc(reminders_qty * sizeof_reminder());
-  persist_reminders_read(reminders);
+  if (reminders_qty > 0) {
+    reminders = malloc(reminders_qty * sizeof_reminder());
+    persist_reminders_read(reminders);
+  }
 
   #if DEBUG
   init_debug_tests();
@@ -40,6 +42,12 @@ static void init(void) {
 
 static void deinit(void) {
   reminder_wakeup_reschedule();
+  
+  // TODO: add a way to know if reminders changed or not (no need to persist if nothing changed).
+  persist_reminders_write(reminders, reminders_qty);
+  
+//   APP_LOG(APP_LOG_LEVEL_DEBUG, "Before free(reminders); addr= %d", (int)reminders);
+  free(reminders);
 
   #if DEBUG
   deinit_debug_tests();

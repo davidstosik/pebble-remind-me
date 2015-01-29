@@ -18,9 +18,7 @@ Reminder* new_reminder() {
   return result;
 }
 
-static int calls = 0;
 int compare_reminders(const void * a, const void * b) {
-  calls++;
   int f = ((Reminder*)a)->schedule_at;
   int s = ((Reminder*)b)->schedule_at;
 
@@ -37,75 +35,31 @@ int compare_reminders(const void * a, const void * b) {
   }
 }
 
-int get_calls() {
-  return calls;
-}
-
-// int persist_reminder_count() {
-//   int result = 0;
-//   if (persist_exists(REMINDERS_COUNT_KEY)) {
-//     result = persist_read_int(REMINDERS_COUNT_KEY);
-//   }
-//   return result;
-// }
-
-// int persist_reminder_start() {
-//   int result = REMINDERS_DEFAULT_START_KEY;
-//   if (persist_exists(REMINDERS_START_KEY)) {
-//     result = persist_read_int(REMINDERS_START_KEY);
-//   }
-//   return result;
-// }
-
 static bool reminder_is_past(Reminder* reminder) {
   return reminder->schedule_at == 0;
 }
 
-// int persist_reminder_get_first_past_position() {
-//   Reminder reminder;
-//   int count = persist_reminder_count();
-//   int position = -1;
-//   bool found = false;
-//   while(!found && ++position < count) {
-//     persist_read_reminder(position, &reminder);
-//     found = reminder_is_past(&reminder);
-//   }
-//   return position;
-// }
-
-// int persist_reminder_get_first_future_position() {
-//   return 0;
-// }
-
-// int persist_reminder_count_past() {
-//   return persist_reminder_count() - persist_reminder_get_first_past_position();
-// }
-
-// int persist_reminder_count_future() {
-//   return persist_reminder_count() - persist_reminder_count_past();
-// }
-
 static void reminder_wakeup_delay(int seconds, int position, Reminder* reminder_ptr) {
-  bool self_allocated = false;
-  if (!reminder_ptr) {
-    reminder_ptr = malloc(sizeof_reminder());
-    self_allocated = true;
-    persist_read_reminder(position, reminder_ptr);
-  }
+//   bool self_allocated = false;
+//   if (!reminder_ptr) {
+//     reminder_ptr = malloc(sizeof_reminder());
+//     self_allocated = true;
+//     persist_read_reminder(position, reminder_ptr);
+//   }
 
-  reminder_ptr->schedule_at += seconds;
+//   reminder_ptr->schedule_at += seconds;
 
-  if (position < persist_reminder_count() - 1) {
-    Reminder* next_ptr = malloc(sizeof_reminder());
-    persist_read_reminder(position+1, next_ptr);
-    if (compare_reminders(reminder_ptr, next_ptr) > 0) {
-      reminder_wakeup_delay(seconds, position+1, next_ptr);
-    }
-    free(next_ptr);
-  }
-  if (self_allocated) {
-    free(reminder_ptr);
-  }
+//   if (position < persist_reminder_count() - 1) {
+//     Reminder* next_ptr = malloc(sizeof_reminder());
+//     persist_read_reminder(position+1, next_ptr);
+//     if (compare_reminders(reminder_ptr, next_ptr) > 0) {
+//       reminder_wakeup_delay(seconds, position+1, next_ptr);
+//     }
+//     free(next_ptr);
+//   }
+//   if (self_allocated) {
+//     free(reminder_ptr);
+//   }
 }
 
 static int reminder_wakeup_cancel() {
@@ -119,106 +73,49 @@ static int reminder_wakeup_cancel() {
 }
 
 int reminder_wakeup_reschedule() {
-  int result = S_SUCCESS;
-  if (persist_reminder_count() > 0) {
-    reminder_wakeup_cancel();
-    Reminder* first_ptr = malloc(sizeof_reminder());
-    persist_read_reminder(0, first_ptr);
+//   int result = S_SUCCESS;
+//   if (persist_reminder_count() > 0) {
+//     reminder_wakeup_cancel();
+//     Reminder* first_ptr = malloc(sizeof_reminder());
+//     persist_read_reminder(0, first_ptr);
     
-    // We suppose the system works, and first reminder's schedule_at is in the future or 0.
-    // TODO also check if current schedule is the right one (then do nothing).
-    if (first_ptr->schedule_at > 0) {
-      result = wakeup_schedule(first_ptr->schedule_at, first_ptr->created_at, true);
-      while(result == E_RANGE || result == E_INVALID_ARGUMENT) {
-        reminder_wakeup_delay(60, 0, first_ptr);
-        result = wakeup_schedule(first_ptr->schedule_at, first_ptr->created_at, true);
-      }
+//     // We suppose the system works, and first reminder's schedule_at is in the future or 0.
+//     // TODO also check if current schedule is the right one (then do nothing).
+//     if (first_ptr->schedule_at > 0) {
+//       result = wakeup_schedule(first_ptr->schedule_at, first_ptr->created_at, true);
+//       while(result == E_RANGE || result == E_INVALID_ARGUMENT) {
+//         reminder_wakeup_delay(60, 0, first_ptr);
+//         result = wakeup_schedule(first_ptr->schedule_at, first_ptr->created_at, true);
+//       }
     
-      persist_write_int(WAKEUP_ID_KEY, result);
-    }
-    free(first_ptr);
-  }
-  return result;
-}
-
-// int persist_read_reminder(int position, Reminder* buff) {
-//   if (position < 0 || position >= persist_reminder_count()) {
-//     return E_RANGE;
-//   } else {
-//     return persist_read_data(persist_reminder_start() + position, buff, sizeof_reminder());
-//   }
-// }
-
-// int persist_write_reminder(int position, Reminder* data) {
-//   if (position < 0) {
-//     return E_RANGE;
-//   } else {
-//     return persist_write_data(persist_reminder_start() + position, data, sizeof_reminder());
-//   }
-// }
-
-// static int persist_delete_reminder(int position) {
-//   int count = persist_reminder_count();
-//   if (position < 0 || position >= count) {
-//     return E_RANGE;
-//   } else {
-//     status_t status = persist_delete(persist_reminder_start() + position);
-//     Reminder* buff = malloc(sizeof_reminder());
-//     for (int i=position; i < count-1; i++) {
-//       persist_read_reminder(i+1, buff);
-//       persist_write_reminder(i, buff);
+//       persist_write_int(WAKEUP_ID_KEY, result);
 //     }
-//     free(buff);
-//     return status;
-//   }
-// }
-
-// int persist_pull_reminder(int position, Reminder* buff) {
-//   int result = E_UNKNOWN;
-//   if (position < 0 || position >= persist_reminder_count()) {
-//     result = E_RANGE;
-//   } else if (persist_read_reminder(position, buff) > 0) {
-//     persist_write_int(REMINDERS_COUNT_KEY, persist_reminder_count() - 1);
-//     result = persist_delete_reminder(position);
+//     free(first_ptr);
 //   }
 //   return result;
-// }
+  return 0;
+}
 
-// void persist_push_reminder(Reminder* reminder_ptr) {
-//   time_t now = time(NULL);
-//   reminder_ptr->created_at = now;
-//   time_t wakeup_time =  snooze_time(reminder_ptr->snooze_opt, now);
-
-//   if (wakeup_time > now) {
-//     reminder_ptr->schedule_at = wakeup_time;
-//   } else {
-//     reminder_ptr->schedule_at = 0;
-//   }
-
-//   // TODO: (improvement) start from beginning if right position is closer.
-//   int position = persist_reminder_count();
-//   bool found_position = reminder_ptr->schedule_at == 0;
-//   Reminder previous;
-//   while(!found_position && position > 0) {
-//     persist_read_reminder(position - 1, &previous);
-//     if (compare_reminders(&previous, reminder_ptr) > 0) {
-//       persist_write_reminder(position, &previous);
-//       position--;
-//     } else {
-//       found_position = true;
-//     }
-//   }
-
-//   //FIXME: need to ensure count doesn't go over some limit.
-//   persist_write_reminder(position, reminder_ptr);
-//   persist_write_int(REMINDERS_COUNT_KEY, persist_reminder_count() + 1);
-// }
-
-void persist_destroy_all_reminders() {
-  int start = persist_reminder_start();
-  for (int i=0; i < persist_reminder_count(); i++) {
-    persist_delete(start + i);
+void reminder_insert(Reminder reminder, Reminder* *reminders_ptr, int *qty_ptr) {
+  int start_time = full_time_ms();
+  
+  if (*reminders_ptr) {
+    Reminder * tmp = realloc(*reminders_ptr, (1+*qty_ptr)*sizeof_reminder());
+    if(tmp != NULL) *reminders_ptr = tmp;
+  } else {
+    *reminders_ptr = malloc((1+*qty_ptr)*sizeof_reminder());
   }
-  persist_write_int(REMINDERS_COUNT_KEY, 0);
-  reminder_wakeup_cancel();
+  (*reminders_ptr)[*qty_ptr] = reminder;
+  *qty_ptr = *qty_ptr + 1;
+  qsort(*reminders_ptr, *qty_ptr, sizeof_reminder(), compare_reminders);
+  
+  APP_LOG(APP_LOG_LEVEL_DEBUG,
+    "Inserted a reminder in a %d-element array, then sorted the result in %dms.",
+    *qty_ptr - 1,
+    (int)(full_time_ms() - start_time)
+  );
+}
+
+void reminder_compute_schedule_at(Reminder* reminder_ptr) {
+  reminder_ptr->schedule_at = snooze_time(reminder_ptr->snooze_opt, reminder_ptr->created_at);
 }

@@ -2,6 +2,7 @@
 #include "debug.h"
 #include "snooze_option.h"
 #include "persist_reminders.h"
+#include "remind_me.h"
 
 void debug_function(char* method_name) {
   APP_LOG(APP_LOG_LEVEL_DEBUG, "METHOD - %s", method_name);
@@ -15,53 +16,49 @@ void debug_reminder(Reminder reminder) {
   );
 }
 
-void debug_all_saved_reminders() {
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "-- Starting log of all reminders (now = %d) --", (int)time(NULL));
-  Reminder reminder;
-  int position = 0;
-  while(persist_read_reminder(position, &reminder) >= 0) {
-    debug_reminder(reminder);
-    position++;
+void debug_reminders(Reminder* reminders, int qty) {
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "== REMINDERS (%d) ==", qty);
+  for(int i = 0; i < qty; i++) {
+    debug_reminder(reminders[i]);
   }
-
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "-- End of log of all reminders (%d) --", position);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "== END OF REMINDERS ==");
 }
 
-static Reminder* debug_reminders;
 void init_debug_tests() {
-//   debug_all_saved_reminders();
-
-  srand(time(NULL));
+  time_t now = time(NULL);
+  srand(now);
+  
+  Reminder * test_reminders;
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Size of empty reminders: %d", sizeof(test_reminders));
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Size of reminders at start: %d", sizeof(reminders));
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Size of a Reminder: %d", sizeof_reminder());
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Size of a SnoozeOption: %d", sizeof(SnoozeOption));
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Size of a bool: %d", sizeof(bool));
 
-  time_t jan_1st = 1420070400;
-  int thirty_days = 30 * 24 * 3600;
-  int total = 300 + rand()%100;
+ if (DEBUG && reminders_qty == 0) {
+    int one_day = 24 * 3600;
+    time_t three_days_ago = now - 3 * one_day;
+    int six_days = 6 * one_day;
+    
+    int total = 7 + rand()%10;
+  
+    uint32_t start = full_time_ms();
 
-  uint32_t start = full_time_ms();
-  debug_reminders = malloc(total * sizeof_reminder());
-  for (int i=0; i < total; i++) {
-    debug_reminders[i].schedule_at = rand()%3 ? 0 : (jan_1st + (rand()*rand())%thirty_days);
-    debug_reminders[i].created_at = jan_1st + ((rand()*rand())%thirty_days);
-    debug_reminders[i].snooze_opt = rand()%SNOOZE_OPT_N;
-    debug_reminders[i].done = rand()%3;
+    Reminder* tmp = realloc(reminders, total * sizeof_reminder());
+    if (tmp != NULL) reminders = tmp;
+
+    for (int i=0; i < total; i++) {
+      reminders[i].created_at = three_days_ago + rand()%six_days;
+      reminders[i].snooze_opt = rand()%SNOOZE_OPT_N;
+      reminder_compute_schedule_at(&reminders[i]);
+      reminders[i].done = reminders[i].schedule_at < now ? !(rand()%3) : false;
+    }
+    reminders_qty = total;
+    
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Filled %d reminders in %dms", total, (int)(full_time_ms() - start));
   }
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Filled %d reminders in %dms", total, (int)(full_time_ms() - start));
-  start = full_time_ms();
-  qsort(debug_reminders, total, sizeof_reminder(), compare_reminders);
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Sorted %d reminders in %dms", total, (int)(full_time_ms() - start));
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Compare function was called %d times", get_calls());
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "First reminder's created_at: %d", (int)debug_reminders[0].created_at);
-  
-  
-  persist_reminders_save(debug_reminders, total);
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Reading count from storage: %d", (int)persist_read_int(PERSIST_REMINDERS_COUNT_KEY));
 }
 
 void deinit_debug_tests() {
-  persist_reminders_read(debug_reminders);
-  free(debug_reminders);
-  debug_all_saved_reminders();
+//   debug_all_saved_reminders();
 }

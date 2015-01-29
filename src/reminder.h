@@ -20,70 +20,50 @@ struct ReminderStruct {
 typedef struct ReminderStruct Reminder;
 
 /**
- * Return the memory size of a Reminder.
  * @return the memory size of a Reminder, in bytes.
  */
 size_t sizeof_reminder();
 
 /**
- * Allocate and initialize a new Reminder object.
- * @return a pointer to the created Reminder.
+ * Allocate a new Reminder and initializes its attributes.
+ * @return a pointer to the new reminder.
  */
 Reminder* new_reminder();
 
-
+/**
+ * Compare two reminders, in a way compatible with qsort().
+ * Schedule_at attribute is used as comparison, where "never" comes last.
+ * For two reminders scheduled at the same time, the created_at attribute
+ * will be used.
+ * @param a pointer to the first reminder to compare.
+ * @param a pointer to the second reminder to compare.
+ * @return
+ *  - a negative number if the first reminders comes sooner than the second
+ *  - a positive number if the second reminders comes later than the second
+ *  - 0 if both reminders are expected at the same time, and were created at the same time.
+ */
 int compare_reminders(const void * a, const void * b);
-int get_calls();
 
 /**
- * Read a previously persisted Reminder from storage.
- * @param position: the position of the reminder to read (starting from 0).
- * @param buff: the pointer to a buffer to be written to.
- * @return the number of bytes written into the buffer or a negative value if an error occurred:
- *   - E_DOES_NOT_EXIST if there is no field matching the given key
- *   - E_RANGE if the passed position is invalid
+ * Insert a reminder in an array of reminders. Will reallocate memory.
+ * Reminders are sorted with qsort(), using compare_reminders() to compare.
+ * @param reminder the reminder to insert.
+ * @param reminders_ptr a pointer to the array of reminders, passed by reference.
+ *   It will be updated on memory (re)allocation.
+ * @param qty_ptr the number of reminders contained in the array, passed by reference.
+ *   It will be incremented after insertion.
+ * 
  */
-int persist_read_reminder(int position, Reminder* buff);
-
-int persist_write_reminder(int position, Reminder* data);
+void reminder_insert(Reminder reminder, Reminder* *reminders_ptr, int *qty_ptr);
 
 /**
- * Get the quantity of Reminders persisted in storage.
- * @return the quantity of Reminders currently persisted in storage.
+ * Compute a reminder's schedule_at, based on its creation date and snooze option.
+ * @param reminder_ptr a pointer to the reminder.
  */
-int persist_reminder_count();
+void reminder_compute_schedule_at(Reminder* reminder_ptr);
 
-int persist_reminder_get_first_past_position();
-int persist_reminder_get_first_future_position();
-int persist_reminder_count_future();
-int persist_reminder_count_past();
-
-/**
- * Persist a reminder in storage. The reminder will be placed so that the list of
- * reminders is sorted by schedule_at ascending.
- * (schedule_at==0, ie. "Never" reminders are put at the end of the list.)
- * @param reminder_ptr: a pointer to the reminder to write in storage.
- */
-void persist_push_reminder(Reminder* reminder_ptr);
-
-/**
- * Pull a reminder out of storage.
- * Reminder is read, deleted, and all following reminders are shifted.
- * @param position: the position of the reminder to pull (starting from 0).
- * @param buff: the pointer to a buffer to be written to.
- * @return the number of bytes written into the buffer or a negative value if an error occurred:
- *   - E_DOES_NOT_EXIST if there is no field matching the given key
- *   - E_RANGE if the passed position is invalid
- *   - E_UNKNOWN if anything else went wrong
- */
-int persist_pull_reminder(int position, Reminder* buff);
 
 /**
  * Reschedule wakeup call for next reminder.
  */
 int reminder_wakeup_reschedule();
-
-/**
- * Destroy all reminders from storage.
- */
-void persist_destroy_all_reminders();

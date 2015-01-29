@@ -81,14 +81,14 @@ static void handle_window_unload(Window* window) {
   //  - when notification comes up, stack it on top, manage stack counter and array of Window and everything.
   //  - instantiate only once, destroy only once (count stack too?)
   destroy_ui();
-  persist_push_reminder(reminder);
+//   persist_push_reminder(reminder);
   free(reminder);
 }
 
 static void init_status() {
   // FIXME: for now we suppose a notification is always triggered by first notification (and it should be).
   reminder = malloc(sizeof_reminder());
-  persist_pull_reminder(0, reminder);
+//   persist_pull_reminder(0, reminder);
   reminder->snooze_opt = NEVER;
 }
 
