@@ -1,7 +1,7 @@
 #include <pebble.h>
 #include "list.h"
 #include "reminder.h"
-#include "remind_me.h"
+#include "main.h"
 
 #if DEBUG
 #include "debug.h"

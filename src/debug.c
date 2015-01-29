@@ -2,7 +2,7 @@
 #include "debug.h"
 #include "snooze_option.h"
 #include "persist_reminders.h"
-#include "remind_me.h"
+#include "main.h"
 
 void debug_function(char* method_name) {
   APP_LOG(APP_LOG_LEVEL_DEBUG, "METHOD - %s", method_name);

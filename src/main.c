@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include "main.h"
 #include "notif.h"
 #include "snooze_option.h"
 #include "add.h"

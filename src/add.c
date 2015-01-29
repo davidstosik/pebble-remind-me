@@ -1,6 +1,6 @@
 #include <pebble.h>
 #include "add.h"
-#include "remind_me.h"
+#include "main.h"
 #include "list.h"
 #include "constants.h"
 #include "reminder.h"
