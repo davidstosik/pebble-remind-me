@@ -1,18 +1,19 @@
 #include <pebble.h>
 #include "main.h"
-#include "notif.h"
-#include "snooze_option.h"
-#include "add.h"
-#include "reminder.h"
+
+#include "screen_add.h"
+#include "screen_notif.h"
+
+/*#include "reminder.h"*/
 #include "persist_reminders.h"
-#include "tools.h"
+#include "snooze_option.h"
 
 #if DEBUG
 #include "debug.h"
 #endif
 
 static void wakeup_handler(WakeupId id, int32_t reason) {
-  show_notif(id, reason);
+  show_screen_notif(id, reason);
 }
 
 static void init(void) {
@@ -24,7 +25,7 @@ static void init(void) {
     // load_triggered_reminder
     wakeup_handler(id, reason);
   } else {
-    show_main();
+    show_screen_add();
   }
 
   reminders_qty = persist_reminders_get_size();

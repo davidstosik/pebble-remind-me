@@ -1,12 +1,17 @@
 #include <pebble.h>
-#include "add.h"
+#include "screen_add.h"
+
 #include "main.h"
-#include "list.h"
+#include "screen_list.h"
+
 #include "constants.h"
 #include "reminder.h"
 #include "persist_reminders.h"
 #include "snooze_option.h"
+
+#if DEBUG
 #include "debug.h"
+#endif
 
 // static int curr_snooze_opt;
 static Reminder *reminder_ptr;
@@ -148,7 +153,7 @@ static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
   reminder_compute_schedule_at(reminder_ptr);
   reminder_insert(*reminder_ptr, &reminders, &reminders_qty);
   
-  hide_main();
+  hide_screen_add();
 }
 
 static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
@@ -162,7 +167,7 @@ static void flash() {
 }
 
 static void up_long_click_down_handler(ClickRecognizerRef recognizer, void *context) {
-  show_list();
+  show_screen_list();
 }
 
 static void down_long_click_down_handler(ClickRecognizerRef recognizer, void *context) {
@@ -180,7 +185,7 @@ static void click_config_provider(void *context) {
   window_long_click_subscribe(BUTTON_ID_DOWN, LONG_CLICK, down_long_click_down_handler, NULL);
 }
 
-void show_main(void) {
+void show_screen_add(void) {
   init_status();
   initialise_ui();
   ui_custom_code();
@@ -192,6 +197,6 @@ void show_main(void) {
   window_stack_push(s_window, true);
 }
 
-void hide_main(void) {
+void hide_screen_add(void) {
   window_stack_remove(s_window, true);
 }

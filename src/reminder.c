@@ -1,6 +1,7 @@
 #include <pebble.h>
-#include "constants.h"
 #include "reminder.h"
+
+#include "constants.h"
 #include "snooze_option.h"
 #include "tools.h"
 

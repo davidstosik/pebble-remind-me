@@ -1,5 +1,6 @@
 #include <pebble.h>
-#include "notif.h"
+#include "screen_notif.h"
+
 #include "reminder.h"
 #include "snooze_option.h"
 
@@ -100,7 +101,7 @@ static void ui_custom_code() {
 static void click_config_provider(void *context) {
 }
 
-void show_notif(int id, int reason) {
+void show_screen_notif(int id, int reason) {
   init_status();
   initialise_ui();
   ui_custom_code();
@@ -114,6 +115,6 @@ void show_notif(int id, int reason) {
   window_stack_push(s_window, true);
 }
 
-void hide_notif(void) {
+void hide_screen_notif(void) {
   window_stack_remove(s_window, true);
 }

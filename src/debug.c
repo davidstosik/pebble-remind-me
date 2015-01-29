@@ -1,8 +1,9 @@
 #include <pebble.h>
 #include "debug.h"
-#include "snooze_option.h"
-#include "persist_reminders.h"
+
 #include "main.h"
+#include "persist_reminders.h"
+#include "snooze_option.h"
 
 void debug_function(char* method_name) {
   APP_LOG(APP_LOG_LEVEL_DEBUG, "METHOD - %s", method_name);

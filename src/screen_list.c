@@ -1,7 +1,8 @@
 #include <pebble.h>
-#include "list.h"
-#include "reminder.h"
+#include "screen_list.h"
+
 #include "main.h"
+#include "reminder.h"
 
 #if DEBUG
 #include "debug.h"
@@ -104,7 +105,7 @@ static void draw_header(GContext *ctx, const Layer *cell_layer, uint16_t section
 //   menu_cell_basic_header_draw(ctx, cell_layer, title);
 }
 
-void show_list(void) {
+void show_screen_list(void) {
   initialise_ui();
   menu_layer_set_callbacks(menu_layer, NULL, (MenuLayerCallbacks){
     .draw_row = draw_row,
