@@ -1,3 +1,5 @@
+#pragma once
+
 #define DEBUG true
 
 #define BUF_LEN 32

@@ -11,9 +11,6 @@
 #include "debug.h"
 #endif
 
-Reminder* reminders;
-int reminders_qty;
-
 static void wakeup_handler(WakeupId id, int32_t reason) {
   show_notif(id, reason);
 }
