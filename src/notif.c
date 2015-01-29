@@ -2,7 +2,10 @@
 #include "notif.h"
 #include "reminder.h"
 #include "snooze_option.h"
-#include "log.h"
+
+#if DEBUG
+#include "debug.h"
+#endif
 
 static Reminder* reminder;
 

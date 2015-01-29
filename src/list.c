@@ -1,7 +1,10 @@
 #include <pebble.h>
 #include "list.h"
 #include "reminder.h"
-#include "log.h"
+
+#if DEBUG
+#include "debug.h"
+#endif
 
 // BEGIN AUTO-GENERATED UI CODE; DO NOT MODIFY
 static Window *s_window;
@@ -30,37 +33,66 @@ static void handle_window_unload(Window* window) {
 }
 
 static void draw_row(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context) {
-  
-  
   Reminder reminder;
-  persist_read_reminder(cell_index->row, &reminder);
-  char label[32];
-  if (reminder.schedule_at > 0) {
-    strftime(label, 32, "%Y/%m/%d - %T", localtime(&(reminder.schedule_at)));
-  } else {
-    strcpy(label, "Past");
+  int position;
+  time_t timestamp;
+  switch(cell_index->section) {
+    case 0:
+      position = persist_reminder_get_first_future_position() + cell_index->row;
+      persist_read_reminder(position, &reminder);
+      timestamp = reminder.schedule_at;
+      break;
+    case 1:
+    default:
+      position = persist_reminder_get_first_past_position() + cell_index->row;
+      persist_read_reminder(position, &reminder);
+      timestamp = reminder.created_at;
+      break;
   }
-//   menu_cell_basic_draw(ctx, cell_layer, label, NULL, NULL);
-  
-
-//   LibraryMenu *menu = (LibraryMenu*)callback_context;
-//   int16_t pos = cell_index->row - menu->current_entry_offset;
-//   if(pos >= MENU_CACHE_COUNT || pos < 0) return;
-  //menu_cell_basic_draw(ctx, cell_layer, menu->menu_entries[pos], NULL, NULL);
-  graphics_context_set_text_color(ctx, GColorBlack);
-  GRect bounds = cell_layer->bounds;
-  bounds.origin.x += 5;
-  bounds.origin.y -= 4;
-  bounds.size.w -= 5;
-  graphics_text_draw(ctx, label, s_res_gothic_14, bounds, GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
+  char title[16];
+  char subtitle[16];
+  strftime(title, 16, "%Y/%m/%d", localtime(&timestamp));
+  strftime(subtitle, 16, "%T", localtime(&timestamp));
+  menu_cell_basic_draw(ctx, cell_layer, title, subtitle, NULL);
+//   GRect bounds = layer_get_bounds(cell_layer);
 }
+
 
 static uint16_t get_num_rows(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
-  return persist_reminder_count();
+  switch(section_index) {
+    case 0:
+      return persist_reminder_count_future();
+    case 1:
+      return persist_reminder_count_past();
+    default: return 0;
+  }
 }
 
-static int16_t get_cell_height(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
-  return 28;
+static uint16_t get_num_sections(struct MenuLayer *menu_layer, void *callback_context) {
+  int future = persist_reminder_count_future() > 0;
+  int past = persist_reminder_count_past() > 0;
+  return future + past;
+}
+
+// static int16_t get_cell_height(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
+//   return 44;
+// }
+
+static int16_t get_header_height(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
+  return 16;
+}
+
+static void draw_header(GContext *ctx, const Layer *cell_layer, uint16_t section_index, void *callback_context) {
+  char * title = "";
+  switch(section_index) {
+    case 0:
+      title = "Future";
+      break;
+    case 1:
+      title = "Past";
+      break;
+  }
+  menu_cell_basic_header_draw(ctx, cell_layer, title);
 }
 
 void show_list(void) {
@@ -68,7 +100,10 @@ void show_list(void) {
   menu_layer_set_callbacks(menu_layer, NULL, (MenuLayerCallbacks){
     .draw_row = draw_row,
     .get_num_rows = get_num_rows,
-    .get_cell_height = get_cell_height,
+    .get_cell_height = NULL,
+    .get_header_height = get_header_height,
+    .draw_header = draw_header,
+    .get_num_sections = get_num_sections,
     .select_click = NULL,
   });
   window_set_window_handlers(s_window, (WindowHandlers) {

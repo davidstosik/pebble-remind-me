@@ -2,7 +2,11 @@
 #include "constants.h"
 #include "reminder.h"
 #include "snooze_option.h"
-#include "log.h"
+#include "tools.h"
+
+#if DEBUG
+#include "debug.h"
+#endif
 
 size_t sizeof_reminder() {
   return sizeof(struct ReminderStruct);
@@ -14,7 +18,9 @@ Reminder* new_reminder() {
   return result;
 }
 
+static int calls = 0;
 int compare_reminders(const void * a, const void * b) {
+  calls++;
   int f = ((Reminder*)a)->schedule_at;
   int s = ((Reminder*)b)->schedule_at;
 
@@ -31,21 +37,53 @@ int compare_reminders(const void * a, const void * b) {
   }
 }
 
-int persist_reminder_count() {
-  int result = 0;
-  if (persist_exists(REMINDERS_COUNT_KEY)) {
-    result = persist_read_int(REMINDERS_COUNT_KEY);
-  }
-  return result;
+int get_calls() {
+  return calls;
 }
 
-int persist_reminder_start() {
-  int result = REMINDERS_DEFAULT_START_KEY;
-  if (persist_exists(REMINDERS_START_KEY)) {
-    result = persist_read_int(REMINDERS_START_KEY);
-  }
-  return result;
+// int persist_reminder_count() {
+//   int result = 0;
+//   if (persist_exists(REMINDERS_COUNT_KEY)) {
+//     result = persist_read_int(REMINDERS_COUNT_KEY);
+//   }
+//   return result;
+// }
+
+// int persist_reminder_start() {
+//   int result = REMINDERS_DEFAULT_START_KEY;
+//   if (persist_exists(REMINDERS_START_KEY)) {
+//     result = persist_read_int(REMINDERS_START_KEY);
+//   }
+//   return result;
+// }
+
+static bool reminder_is_past(Reminder* reminder) {
+  return reminder->schedule_at == 0;
 }
+
+// int persist_reminder_get_first_past_position() {
+//   Reminder reminder;
+//   int count = persist_reminder_count();
+//   int position = -1;
+//   bool found = false;
+//   while(!found && ++position < count) {
+//     persist_read_reminder(position, &reminder);
+//     found = reminder_is_past(&reminder);
+//   }
+//   return position;
+// }
+
+// int persist_reminder_get_first_future_position() {
+//   return 0;
+// }
+
+// int persist_reminder_count_past() {
+//   return persist_reminder_count() - persist_reminder_get_first_past_position();
+// }
+
+// int persist_reminder_count_future() {
+//   return persist_reminder_count() - persist_reminder_count_past();
+// }
 
 static void reminder_wakeup_delay(int seconds, int position, Reminder* reminder_ptr) {
   bool self_allocated = false;
@@ -70,13 +108,20 @@ static void reminder_wakeup_delay(int seconds, int position, Reminder* reminder_
   }
 }
 
+static int reminder_wakeup_cancel() {
+  int wakeup_id = 0;
+  if (persist_exists(WAKEUP_ID_KEY)) {
+    wakeup_id = persist_read_int(WAKEUP_ID_KEY);
+    wakeup_cancel(wakeup_id);
+    persist_delete(WAKEUP_ID_KEY);
+  }
+  return wakeup_id;
+}
+
 int reminder_wakeup_reschedule() {
   int result = S_SUCCESS;
   if (persist_reminder_count() > 0) {
-
-    if (persist_exists(WAKEUP_ID_KEY)) {
-      wakeup_cancel(persist_read_int(WAKEUP_ID_KEY));
-    }
+    reminder_wakeup_cancel();
     Reminder* first_ptr = malloc(sizeof_reminder());
     persist_read_reminder(0, first_ptr);
     
@@ -96,82 +141,78 @@ int reminder_wakeup_reschedule() {
   return result;
 }
 
-int persist_read_reminder(int position, Reminder* buff) {
-  if (position < 0 || position >= persist_reminder_count()) {
-    return E_RANGE;
-  } else {
-    return persist_read_data(persist_reminder_start() + position, buff, sizeof_reminder());
-  }
-}
+// int persist_read_reminder(int position, Reminder* buff) {
+//   if (position < 0 || position >= persist_reminder_count()) {
+//     return E_RANGE;
+//   } else {
+//     return persist_read_data(persist_reminder_start() + position, buff, sizeof_reminder());
+//   }
+// }
 
-static int persist_write_reminder(int position, Reminder* data) {
-  if (position < 0) {
-    return E_RANGE;
-  } else {
-    return persist_write_data(persist_reminder_start() + position, data, sizeof_reminder());
-  }
-}
+// int persist_write_reminder(int position, Reminder* data) {
+//   if (position < 0) {
+//     return E_RANGE;
+//   } else {
+//     return persist_write_data(persist_reminder_start() + position, data, sizeof_reminder());
+//   }
+// }
 
-static int persist_delete_reminder(int position) {
-  int count = persist_reminder_count();
-  if (position < 0 || position >= count) {
-    return E_RANGE;
-  } else {
-    status_t status = persist_delete(persist_reminder_start() + position);
-    Reminder* buff = malloc(sizeof_reminder());
-    for (int i=position; i < count-1; i++) {
-      persist_read_reminder(i+1, buff);
-      persist_write_reminder(i, buff);
-    }
-    free(buff);
-    return status;
-  }
-}
+// static int persist_delete_reminder(int position) {
+//   int count = persist_reminder_count();
+//   if (position < 0 || position >= count) {
+//     return E_RANGE;
+//   } else {
+//     status_t status = persist_delete(persist_reminder_start() + position);
+//     Reminder* buff = malloc(sizeof_reminder());
+//     for (int i=position; i < count-1; i++) {
+//       persist_read_reminder(i+1, buff);
+//       persist_write_reminder(i, buff);
+//     }
+//     free(buff);
+//     return status;
+//   }
+// }
 
-int persist_pull_reminder(int position, Reminder* buff) {
-  int result = E_UNKNOWN;
-  if (position < 0 || position >= persist_reminder_count()) {
-    result = E_RANGE;
-  } else if (persist_read_reminder(position, buff) > 0) {
-    persist_write_int(REMINDERS_COUNT_KEY, persist_reminder_count() - 1);
-    result = persist_delete_reminder(position);
-  }
-  return result;
-}
+// int persist_pull_reminder(int position, Reminder* buff) {
+//   int result = E_UNKNOWN;
+//   if (position < 0 || position >= persist_reminder_count()) {
+//     result = E_RANGE;
+//   } else if (persist_read_reminder(position, buff) > 0) {
+//     persist_write_int(REMINDERS_COUNT_KEY, persist_reminder_count() - 1);
+//     result = persist_delete_reminder(position);
+//   }
+//   return result;
+// }
 
-void persist_push_reminder(Reminder* reminder_ptr) {
-  /** DEBUG **/ uint32_t f_start = full_time_ms();
+// void persist_push_reminder(Reminder* reminder_ptr) {
+//   time_t now = time(NULL);
+//   reminder_ptr->created_at = now;
+//   time_t wakeup_time =  snooze_time(reminder_ptr->snooze_opt, now);
 
-  time_t now = time(NULL);
-  reminder_ptr->created_at = now;
-  time_t wakeup_time =  snooze_time(reminder_ptr->snooze_opt, now);
+//   if (wakeup_time > now) {
+//     reminder_ptr->schedule_at = wakeup_time;
+//   } else {
+//     reminder_ptr->schedule_at = 0;
+//   }
 
-  if (wakeup_time > now) {
-    reminder_ptr->schedule_at = wakeup_time;
-  } else {
-    reminder_ptr->schedule_at = 0;
-  }
+//   // TODO: (improvement) start from beginning if right position is closer.
+//   int position = persist_reminder_count();
+//   bool found_position = reminder_ptr->schedule_at == 0;
+//   Reminder previous;
+//   while(!found_position && position > 0) {
+//     persist_read_reminder(position - 1, &previous);
+//     if (compare_reminders(&previous, reminder_ptr) > 0) {
+//       persist_write_reminder(position, &previous);
+//       position--;
+//     } else {
+//       found_position = true;
+//     }
+//   }
 
-  // TODO: (improvement) start from beginning if right position is closer.
-  int position = persist_reminder_count();
-  bool found_position = reminder_ptr->schedule_at == 0;
-  Reminder previous;
-  while(!found_position && position > 0) {
-    persist_read_reminder(position - 1, &previous);
-    if (compare_reminders(&previous, reminder_ptr) > 0) {
-      persist_write_reminder(position, &previous);
-      position--;
-    } else {
-      found_position = true;
-    }
-  }
-
-  //FIXME: need to ensure count doesn't go over some limit.
-  persist_write_reminder(position, reminder_ptr);
-  persist_write_int(REMINDERS_COUNT_KEY, persist_reminder_count() + 1);
-
-  DEBUG ? APP_LOG(APP_LOG_LEVEL_DEBUG, "push_reminder() ending. Time: %dms", (int)(full_time_ms() - f_start)) : NULL;
-}
+//   //FIXME: need to ensure count doesn't go over some limit.
+//   persist_write_reminder(position, reminder_ptr);
+//   persist_write_int(REMINDERS_COUNT_KEY, persist_reminder_count() + 1);
+// }
 
 void persist_destroy_all_reminders() {
   int start = persist_reminder_start();
@@ -179,4 +220,5 @@ void persist_destroy_all_reminders() {
     persist_delete(start + i);
   }
   persist_write_int(REMINDERS_COUNT_KEY, 0);
+  reminder_wakeup_cancel();
 }

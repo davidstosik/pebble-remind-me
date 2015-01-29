@@ -5,6 +5,7 @@
 /**
  * A reminder saved by the user.
  */
+#pragma pack(2)
 struct ReminderStruct {
   //! The time when this reminder was created by the user. Acts as unique id,
   //! on the assumption that two reminders cannot be created at the same time.
@@ -13,6 +14,8 @@ struct ReminderStruct {
   time_t schedule_at;
   //! A key that describes which timing option the user chose (@see snooze_option.h).
   SnoozeOption snooze_opt;
+  //! A boolean state that indicates if the reminder is done.
+  bool done;
 };
 typedef struct ReminderStruct Reminder;
 
@@ -28,6 +31,10 @@ size_t sizeof_reminder();
  */
 Reminder* new_reminder();
 
+
+int compare_reminders(const void * a, const void * b);
+int get_calls();
+
 /**
  * Read a previously persisted Reminder from storage.
  * @param position: the position of the reminder to read (starting from 0).
@@ -38,11 +45,18 @@ Reminder* new_reminder();
  */
 int persist_read_reminder(int position, Reminder* buff);
 
+int persist_write_reminder(int position, Reminder* data);
+
 /**
  * Get the quantity of Reminders persisted in storage.
  * @return the quantity of Reminders currently persisted in storage.
  */
 int persist_reminder_count();
+
+int persist_reminder_get_first_past_position();
+int persist_reminder_get_first_future_position();
+int persist_reminder_count_future();
+int persist_reminder_count_past();
 
 /**
  * Persist a reminder in storage. The reminder will be placed so that the list of

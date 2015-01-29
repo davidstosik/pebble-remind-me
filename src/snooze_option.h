@@ -1,9 +1,6 @@
 #pragma once
 #include <pebble.h>
 #include "constants.h"
-
-// FIXME: maybe there's another way to get the number of item in enum
-#define SNOOZE_OPT_N 5
   
 typedef enum {
   NEVER = 0,
@@ -11,6 +8,7 @@ typedef enum {
   ONE_HR,
   SIX_HRS,
   ONE_DAY,
+  SNOOZE_OPT_N,
 } SnoozeOption;
 
 /**
