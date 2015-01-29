@@ -44,8 +44,8 @@ void init_debug_tests() {
   
     uint32_t start = full_time_ms();
 
-    Reminder* tmp = realloc(reminders, total * sizeof_reminder());
-    if (tmp != NULL) reminders = tmp;
+    if(reminders) free(reminders);
+    reminders = malloc(total * sizeof_reminder());
 
     for (int i=0; i < total; i++) {
       reminders[i].created_at = three_days_ago + rand()%six_days;
