@@ -4,10 +4,16 @@
         ""
     ],
     "companyName": "David Stosik",
-    "longName": "Remind Me",
+    "longName": "Remind Me To",
     "projectType": "native",
     "resources": {
         "media": [
+            {
+                "menuIcon": true,
+                "name": "IMAGE_MENU_ICON",
+                "type": "png",
+                "file": "images/app_icon_2424.png"
+            },
             {
                 "file": "images/alarm.png",
                 "name": "ICON_ALARM",
@@ -45,7 +51,7 @@
             }
         ]
     },
-    "shortName": "Remind Me",
+    "shortName": "Remind Me To",
     "uuid": "7ebdf59d-717e-4a12-9f39-a11a65dd0e26",
     "versionCode": 1,
     "versionLabel": "1.0",
