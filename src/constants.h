@@ -1,6 +1,6 @@
 #pragma once
 
-#define DEBUG true
+#define DEBUG false
 
 #define BUF_LEN 32
 #define LONG_CLICK 500

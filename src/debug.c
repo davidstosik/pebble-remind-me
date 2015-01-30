@@ -41,7 +41,7 @@ void init_debug_tests() {
     time_t three_days_ago = now - 3 * one_day;
     int six_days = 6 * one_day;
     
-    int total = 7 + rand()%10;
+    int total = PERSIST_REMINDERS_MAX - rand()%50;
   
     uint32_t start = full_time_ms();
 
@@ -55,9 +55,29 @@ void init_debug_tests() {
       reminders[i].done = reminders[i].schedule_at < now ? !(rand()%3) : false;
     }
     reminders_qty = total;
+
+    qsort(reminders, reminders_qty, sizeof_reminder(), compare_reminders);
     
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Filled %d reminders in %dms", total, (int)(full_time_ms() - start));
+    
+    Reminder to_insert;
+    to_insert.created_at = now;
+    to_insert.snooze_opt = TEN_MIN;
+    reminder_compute_schedule_at(&to_insert);
+    to_insert.done = to_insert.schedule_at < now ? !(rand()%3) : false;
+
+    reminder_insert(to_insert, &reminders, &reminders_qty);
   }
+
+  APP_LOG(APP_LOG_LEVEL_DEBUG,
+    "The position of the first 'never' scheduled reminder is %d",
+    find_first_never_reminder(reminders, reminders_qty)
+  );
+
+  APP_LOG(APP_LOG_LEVEL_DEBUG,
+    "The position of the next scheduled reminder is %d",
+    find_next_reminder(reminders, reminders_qty, 0)
+  );
 }
 
 void deinit_debug_tests() {

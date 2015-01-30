@@ -7,6 +7,12 @@
 #if DEBUG
 #include "debug.h"
 #endif
+  
+typedef enum {
+  FUTURE = 0,
+  NEVER_SCHED,
+  PAST,
+} Section;
 
 // BEGIN AUTO-GENERATED UI CODE; DO NOT MODIFY
 static Window *s_window;
@@ -35,7 +41,19 @@ static void handle_window_unload(Window* window) {
 }
 
 static void draw_row(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context) {
-  Reminder reminder = reminders[cell_index->row];
+  int offset = 0;
+  switch(cell_index->section) {
+    case FUTURE:
+      offset = find_next_reminder(reminders, reminders_qty, time(NULL));
+      break;
+    case NEVER_SCHED:
+      offset = find_first_never_reminder(reminders, reminders_qty);
+      break;
+    case PAST:
+    default:
+      break;
+  }
+  Reminder reminder = reminders[offset + cell_index->row];
   time_t timestamp = reminder.schedule_at;
   char title[16];
   char subtitle[16];
@@ -68,17 +86,21 @@ static void draw_row(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_ind
 
 
 static uint16_t get_num_rows(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
+  int counts[3];
+  reminder_count_types(reminders, reminders_qty, counts);
   switch(section_index) {
-//     case 0:
-//       return persist_reminder_count_future();
-//     case 1:
-//       return persist_reminder_count_past();
-    default: return reminders_qty;
+    case FUTURE:
+      return counts[1];
+    case NEVER_SCHED:
+      return counts[2];
+    case PAST:
+      return counts[0];
+    default: return 0;
   }
 }
 
 static uint16_t get_num_sections(struct MenuLayer *menu_layer, void *callback_context) {
-  return 1;
+  return 3;
 //   int future = persist_reminder_count_future() > 0;
 //   int past = persist_reminder_count_past() > 0;
 //   return future + past;
@@ -89,20 +111,38 @@ static uint16_t get_num_sections(struct MenuLayer *menu_layer, void *callback_co
 // }
 
 static int16_t get_header_height(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
+  int counts[3];
+  reminder_count_types(reminders, reminders_qty, counts);
+  switch(section_index) {
+    case FUTURE:
+      if (!counts[1]) return 0;
+      break;
+    case NEVER_SCHED:
+      if (!counts[2]) return 0;
+      break;
+    case PAST:
+      if (!counts[0]) return 0;
+      break;
+    default: return 0;
+  }
   return 16;
 }
 
 static void draw_header(GContext *ctx, const Layer *cell_layer, uint16_t section_index, void *callback_context) {
-//   char * title = "";
-//   switch(section_index) {
-//     case 0:
-//       title = "Future";
-//       break;
-//     case 1:
-//       title = "Past";
-//       break;
-//   }
-//   menu_cell_basic_header_draw(ctx, cell_layer, title);
+  char * title = "";
+  // FIXME look at dictionnary
+  switch(section_index) {
+    case FUTURE:
+      title = "Future";
+      break;
+    case NEVER_SCHED:
+      title = "Never scheduled";
+      break;
+    case PAST:
+      title = "Past";
+      break;
+  }
+  menu_cell_basic_header_draw(ctx, cell_layer, title);
 }
 
 void show_screen_list(void) {

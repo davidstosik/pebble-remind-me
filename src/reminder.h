@@ -45,6 +45,19 @@ Reminder* new_reminder();
 int compare_reminders(const void * a, const void * b);
 
 /**
+ * Find by dichotomy the position of the first reminder never scheduled
+ * in a list of sorted reminders (never scheduled reminders are at the end).
+ * @param reminders an array of reminders.
+ * @param qty the number of reminders contained in the array.
+ * @return the position of the searched reminder in the array,
+ *   or -1 if not found.
+ */
+int find_first_never_reminder(Reminder* reminders, int qty);
+int find_next_reminder(Reminder* reminders, int qty, time_t now);
+
+void reminder_count_types(Reminder* reminders, int qty, int values[3]);
+
+/**
  * Insert a reminder in an array of reminders. Will reallocate memory.
  * Reminders are sorted with qsort(), using compare_reminders() to compare.
  * @param reminder the reminder to insert.
@@ -66,4 +79,4 @@ void reminder_compute_schedule_at(Reminder* reminder_ptr);
 /**
  * Reschedule wakeup call for next reminder.
  */
-int reminder_wakeup_reschedule();
+int reminder_wakeup_reschedule(Reminder* reminders, int qty);

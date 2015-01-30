@@ -40,8 +40,8 @@ static void init(void) {
 }
 
 static void deinit(void) {
-  reminder_wakeup_reschedule();
-  
+  reminder_wakeup_reschedule(reminders, reminders_qty);
+
   // TODO: add a way to know if reminders changed or not (no need to persist if nothing changed).
   persist_reminders_write(reminders, reminders_qty);
   
