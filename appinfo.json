@@ -1,11 +1,11 @@
 {
   "uuid": "bfac59e3-70e4-4400-9d57-17290531ff99",
-  "shortName": "remind-me",
-  "longName": "remind-me",
-  "companyName": "MakeAwesomeHappen",
-  "versionLabel": "1.0",
+  "shortName": "Remind Me",
+  "longName": "Remind Me",
+  "companyName": "David Stosik",
+  "versionLabel": "0.1",
   "sdkVersion": "3",
-  "targetPlatforms": ["aplite", "basalt"],
+  "targetPlatforms": ["aplite", "basalt", "chalk"],
   "watchapp": {
     "watchface": false
   },
