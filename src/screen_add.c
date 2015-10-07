@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include <constants.h>
 #include <reminder.h>
 #include <persistence.h>
 
@@ -21,16 +22,18 @@ static void window_load(Window *window) {
   Layer *window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
   status_bar_layer = status_bar_layer_create();
-  // status_bar_layer_set_separator_mode(status_bar_layer, StatusBarLayerSeparatorModeDotted);
+  status_bar_layer_set_colors(status_bar_layer, APP_BG_COLOR, APP_FG_COLOR);
+
   // Change the status bar width to make space for the action bar
-  // int16_t width = layer_get_bounds(root_layer).size.w - ACTION_BAR_WIDTH;
-  // GRect frame = GRect(0, 0, width, STATUS_BAR_LAYER_HEIGHT);
-  // layer_set_frame(status_bar_layer_get_layer(status_bar), frame);
-  // layer_add_child(root_layer, status_bar_layer_get_layer(status_bar));
+  int16_t width = layer_get_bounds(window_layer).size.w - ACTION_BAR_WIDTH;
+  GRect frame = GRect(0, 0, width, STATUS_BAR_LAYER_HEIGHT);
+  layer_set_frame(status_bar_layer_get_layer(status_bar_layer), frame);
+
   layer_add_child(window_layer, status_bar_layer_get_layer(status_bar_layer));
 
   action_bar_layer = action_bar_layer_create();
   action_bar_layer_set_click_config_provider(action_bar_layer, click_config_provider);
+  action_bar_layer_set_background_color(action_bar_layer, APP_HL_COLOR);
   // action_bar_layer_set_icon_animated(action_bar, BUTTON_ID_UP, my_icon_previous, true);
   // action_bar_layer_set_icon_animated(action_bar, BUTTON_ID_DOWN, my_icon_next, true);
   action_bar_layer_add_to_window(action_bar_layer, window);

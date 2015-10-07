@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include <constants.h>
 #include <reminder.h>
 #include <persistence.h>
 #include <screen_add.h>
@@ -58,6 +59,7 @@ static void window_load(Window *window) {
   GRect bounds = layer_get_bounds(window_layer);
 
   s_menu_layer = menu_layer_create(bounds);
+  menu_layer_set_highlight_colors(s_menu_layer, APP_HL_COLOR, APP_BG_COLOR);
   menu_layer_set_click_config_onto_window(s_menu_layer, window);
   menu_layer_set_callbacks(s_menu_layer, NULL, (MenuLayerCallbacks){
     .draw_row = draw_row,
