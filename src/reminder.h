@@ -8,4 +8,3 @@ struct Reminder {
 
 struct Reminder *Reminder_create(int remind_in);
 int get_reminder_count();
-struct Reminder** load_reminders();

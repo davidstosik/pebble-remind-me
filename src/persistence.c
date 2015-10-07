@@ -1,34 +1,82 @@
 #include <pebble.h>
+#include <constants.h>
 #include <reminder.h>
 
 static struct Reminder **reminders;
 static int reminder_count = -1;
 
-int get_reminder_count() {
-  if (reminder_count == -1) {
-    reminder_count = 5;
+void load_reminders() {
+  static bool loaded = false;
+  if (loaded) { return; }
+
+  if (persist_exists(PERSIST_REMINDERS_COUNT_KEY)) {
+    reminder_count = persist_read_int(PERSIST_REMINDERS_COUNT_KEY);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_read_int(%i) = %i", PERSIST_REMINDERS_COUNT_KEY, reminder_count);
   }
+  else {
+    reminder_count = 0;
+  }
+
+  reminders = malloc(sizeof(struct Reminder*) * reminder_count);
+
+  // FIXME batch reading?
+  for (int i = 0; i < reminder_count; i++) {
+    reminders[i] = malloc(sizeof(struct Reminder));
+    persist_read_data(
+      PERSIST_REMINDERS_START_KEY + i,
+      reminders[i],
+      sizeof(struct Reminder)
+    );
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_read_data(%i) = reminder", PERSIST_REMINDERS_START_KEY + i);
+  }
+  loaded = true;
+}
+
+int get_reminder_count() {
   return reminder_count;
 }
 
-struct Reminder** load_reminders() {
-  static bool loaded = false;
-
-  if (!loaded) {
-    reminders = malloc(sizeof(struct Reminder*) * get_reminder_count());
-    reminders[0] = Reminder_create(30);
-    reminders[1] = Reminder_create(600);
-    reminders[2] = Reminder_create(1800);
-    reminders[3] = Reminder_create(3600);
-    reminders[4] = Reminder_create(86400);
-    loaded = true;
-  }
-
+struct Reminder** get_reminders() {
   return reminders;
 }
 
+static void* iso_realloc(void* ptr, size_t size) {
+  if (ptr != NULL) {
+    return realloc(ptr, size);
+  } else {
+    return malloc(size);
+  }
+}
+
+void reminders_add_reminder(struct Reminder * new_reminder) {
+  reminder_count += 1;
+  reminders = iso_realloc(reminders, reminder_count * sizeof(struct Reminder));
+  reminders[reminder_count - 1] = new_reminder;
+}
+
+void persist_reminders() {
+  for (int i = 0; i < reminder_count; i++) {
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_write(%i, reminder)", PERSIST_REMINDERS_START_KEY + i);
+    persist_write_data(
+      PERSIST_REMINDERS_START_KEY + i,
+      reminders[i],
+      sizeof(struct Reminder)
+    );
+  }
+
+  int i = PERSIST_REMINDERS_START_KEY + reminder_count;
+  while (persist_exists(i) && i < PERSIST_REMINDERS_END_KEY) {
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_delete(%i)", i);
+    persist_delete(PERSIST_REMINDERS_START_KEY + i);
+    i++;
+  }
+
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_write(%i, %i)", PERSIST_REMINDERS_COUNT_KEY, reminder_count);
+  persist_write_int(PERSIST_REMINDERS_COUNT_KEY, reminder_count);
+}
+
 void free_reminders() {
-  for (int i = 0; i < get_reminder_count(); i++) {
+  for (int i = 0; i < reminder_count; i++) {
     free(reminders[i]);
   }
   free(reminders);

@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include <reminder.h>
 #include <persistence.h>
+#include <screen_add.h>
 
 static Window *window;
 static MenuLayer *s_menu_layer;
@@ -29,7 +30,7 @@ static void draw_row(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_ind
     draw_add_button_menu_item(ctx, cell_layer);
   }
   else {
-    struct Reminder * reminder = load_reminders()[cell_index->row - 1];
+    struct Reminder * reminder = get_reminders()[cell_index->row - 1];
     draw_reminder_menu_item(ctx, cell_layer, reminder);
   }
 }
@@ -38,6 +39,17 @@ static uint16_t get_num_rows(struct MenuLayer *menu_layer, uint16_t section_inde
   switch(section_index) {
     case 0: return get_reminder_count() + 1;
     default: return 0;
+  }
+}
+
+static void select_click(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
+  if (cell_index->section != 0) { return; }
+  if (cell_index->row > get_reminder_count()) { return; }
+  else if (cell_index->row == 0) {
+    screen_add_show();
+  }
+  else {
+    // show reminder details/edit action menu
   }
 }
 
@@ -50,6 +62,7 @@ static void window_load(Window *window) {
   menu_layer_set_callbacks(s_menu_layer, NULL, (MenuLayerCallbacks){
     .draw_row = draw_row,
     .get_num_rows = get_num_rows,
+    .select_click = select_click
   });
   layer_add_child(window_get_root_layer(window), (Layer *)s_menu_layer);
 }
