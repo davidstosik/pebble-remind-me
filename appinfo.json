@@ -5,7 +5,7 @@
   "companyName": "David Stosik",
   "versionLabel": "0.1",
   "sdkVersion": "3",
-  "targetPlatforms": ["aplite", "basalt", "chalk"],
+  "targetPlatforms": ["basalt", "chalk"],
   "watchapp": {
     "watchface": false
   },
