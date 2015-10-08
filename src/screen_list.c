@@ -72,7 +72,7 @@ static void window_load(Window *window) {
     .get_num_rows = get_num_rows,
     .select_click = select_click
   });
-  layer_add_child(window_get_root_layer(window), (Layer *)s_menu_layer);
+  layer_add_child(window_layer, menu_layer_get_layer(s_menu_layer));
 }
 
 static void window_unload(Window *window) {
