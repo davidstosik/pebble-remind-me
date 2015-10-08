@@ -6,6 +6,7 @@
 
 static Window *window;
 static MenuLayer *s_menu_layer;
+static ActionMenu *reminder_action_menu;
 static StatusBarLayer *status_bar_layer;
 static char menu_title_str[50];
 static char menu_subtitle_str[50];
@@ -44,6 +45,10 @@ static uint16_t get_num_rows(struct MenuLayer *menu_layer, uint16_t section_inde
   }
 }
 
+static void reminder_action_menu_delete(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
+  reminders_delete_reminder(0);
+}
+
 static void select_click(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
   if (cell_index->section != 0) { return; }
   if (cell_index->row > get_reminder_count()) { return; }
@@ -51,7 +56,17 @@ static void select_click(struct MenuLayer *menu_layer, MenuIndex *cell_index, vo
     screen_add_show();
   }
   else {
-    // show reminder details/edit action menu
+    ActionMenuLevel* root_level = action_menu_level_create(1);
+    action_menu_level_add_action(root_level, "Delete", reminder_action_menu_delete, NULL);
+    ActionMenuConfig* config = &(ActionMenuConfig){
+      // .align = ,
+      // .colors = ,
+      // .context = ,
+      // .did_close = ,
+      .root_level = root_level,
+      // .will_close = ,
+    };
+    reminder_action_menu = action_menu_open(config);
   }
 }
 

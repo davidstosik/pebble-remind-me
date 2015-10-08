@@ -54,6 +54,10 @@ void reminders_add_reminder(struct Reminder * new_reminder) {
   reminders[reminder_count - 1] = new_reminder;
 }
 
+void reminders_delete_reminder(int index) {
+  reminder_count--;
+}
+
 void persist_reminders() {
   for (int i = 0; i < reminder_count; i++) {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_write(%i, reminder)", PERSIST_REMINDERS_START_KEY + i);
