@@ -6,6 +6,7 @@
 
 static Window *window;
 static MenuLayer *s_menu_layer;
+static StatusBarLayer *status_bar_layer;
 static char menu_title_str[50];
 static char menu_subtitle_str[50];
 
@@ -56,9 +57,14 @@ static void select_click(struct MenuLayer *menu_layer, MenuIndex *cell_index, vo
 
 static void window_load(Window *window) {
   Layer *window_layer = window_get_root_layer(window);
+
+  status_bar_layer = status_bar_layer_create();
+  status_bar_layer_set_colors(status_bar_layer, APP_BG_COLOR, APP_FG_COLOR);
+  layer_add_child(window_layer, status_bar_layer_get_layer(status_bar_layer));
+
   GRect bounds = layer_get_bounds(window_layer);
 
-  s_menu_layer = menu_layer_create(bounds);
+  s_menu_layer = menu_layer_create(GRect(0, STATUS_BAR_LAYER_HEIGHT, bounds.size.w, bounds.size.h - STATUS_BAR_LAYER_HEIGHT));
   menu_layer_set_highlight_colors(s_menu_layer, APP_HL_COLOR, APP_BG_COLOR);
   menu_layer_set_click_config_onto_window(s_menu_layer, window);
   menu_layer_set_callbacks(s_menu_layer, NULL, (MenuLayerCallbacks){
@@ -71,6 +77,7 @@ static void window_load(Window *window) {
 
 static void window_unload(Window *window) {
   menu_layer_destroy(s_menu_layer);
+  status_bar_layer_destroy(status_bar_layer);
   window_destroy(window);
 }
 
