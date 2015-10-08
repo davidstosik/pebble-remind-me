@@ -81,11 +81,16 @@ static void window_unload(Window *window) {
   window_destroy(window);
 }
 
+static void window_appear(Window *window) {
+  menu_layer_reload_data(s_menu_layer);
+}
+
 void screen_list_show() {
   window = window_create();
   window_set_window_handlers(window, (WindowHandlers) {
     .load = window_load,
     .unload = window_unload,
+    .appear = window_appear,
   });
 
   window_stack_push(window, true);
