@@ -12,7 +12,6 @@ void load_reminders() {
 
   if (persist_exists(PERSIST_REMINDERS_COUNT_KEY)) {
     reminder_count = persist_read_int(PERSIST_REMINDERS_COUNT_KEY);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_read_int(%i) = %i", PERSIST_REMINDERS_COUNT_KEY, reminder_count);
   }
   else {
     reminder_count = 0;
@@ -21,16 +20,14 @@ void load_reminders() {
   reminders = ReminderList_create();
 
   // FIXME batch reading/writing to maximise slot usage?
-  for (int i = 0; i < reminder_count; i++) {
+  for (int i = reminder_count - 1; i >= 0; i--) {
     struct Reminder reminder;
     persist_read_data(
       PERSIST_REMINDERS_START_KEY + i,
       &reminder,
       sizeof(reminder)
     );
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_read_data(%i) = reminder", PERSIST_REMINDERS_START_KEY + i);
-    //FIXME push is unoptimal as it scans the whole list on each item. Use unshift from end of memory.
-    ReminderList_push(&reminders, reminder);
+    ReminderList_unshift(&reminders, reminder);
   }
   loaded = true;
 }
@@ -66,17 +63,8 @@ struct Reminder* get_reminder_at(int index) {
   return _get_reminder_at(index, reminders);
 }
 
-// static void* iso_realloc(void* ptr, size_t size) {
-//   if (ptr != NULL) {
-//     return realloc(ptr, size);
-//   } else {
-//     return malloc(size);
-//   }
-// }
-
 void reminders_add_reminder(struct Reminder new_reminder) {
   ReminderList_insert_sorted(&reminders, new_reminder);
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "reminders_add_reminder() ran, new size: %i", ReminderList_size(reminders));
   reminder_count++;
 }
 
