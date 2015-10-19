@@ -9,7 +9,11 @@ static ActionBarLayer *action_bar_layer;
 static TextLayer *delay_text_layer;
 
 void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-  struct Reminder * new_reminder = Reminder_create(600);
+  int delay = 600;
+  if (get_reminder_count() > 2) {
+    delay = 300;
+  }
+  struct Reminder new_reminder = Reminder_create(delay);
   reminders_add_reminder(new_reminder);
   window_stack_remove(window, true);
 }

@@ -1,8 +1,9 @@
 #include <pebble.h>
 #include <constants.h>
 #include <reminder.h>
+#include <reminder_list.h>
 
-static struct Reminder **reminders;
+static struct ReminderList *reminders;
 static int reminder_count = -1;
 
 void load_reminders() {
@@ -17,71 +18,96 @@ void load_reminders() {
     reminder_count = 0;
   }
 
-  reminders = malloc(sizeof(struct Reminder*) * reminder_count);
+  reminders = ReminderList_create();
 
-  // FIXME batch reading?
+  // FIXME batch reading/writing to maximise slot usage?
   for (int i = 0; i < reminder_count; i++) {
-    reminders[i] = malloc(sizeof(struct Reminder));
+    struct Reminder reminder;
     persist_read_data(
       PERSIST_REMINDERS_START_KEY + i,
-      reminders[i],
-      sizeof(struct Reminder)
+      &reminder,
+      sizeof(reminder)
     );
     APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_read_data(%i) = reminder", PERSIST_REMINDERS_START_KEY + i);
+    //FIXME push is unoptimal as it scans the whole list on each item. Use unshift from end of memory.
+    ReminderList_push(&reminders, reminder);
   }
   loaded = true;
 }
 
-int get_reminder_count() {
+static int refresh_reminder_count(bool refresh) {
+  if (reminder_count == -1 || refresh) {
+    reminder_count = ReminderList_size(reminders);
+  }
   return reminder_count;
 }
 
-struct Reminder** get_reminders() {
+int get_reminder_count() {
+  return refresh_reminder_count(false);
+}
+
+struct ReminderList* get_reminders() {
   return reminders;
 }
 
-static void* iso_realloc(void* ptr, size_t size) {
-  if (ptr != NULL) {
-    return realloc(ptr, size);
-  } else {
-    return malloc(size);
+struct Reminder* _get_reminder_at(int index, struct ReminderList * list) {
+  if (list == NULL) {
+    return NULL;
+  }
+  else if (index == 0) {
+    return &(list->reminder);
+  }
+  else {
+    return _get_reminder_at(index-1, list->next);
   }
 }
 
-void reminders_add_reminder(struct Reminder * new_reminder) {
-  reminder_count += 1;
-  reminders = iso_realloc(reminders, reminder_count * sizeof(struct Reminder));
-  reminders[reminder_count - 1] = new_reminder;
+struct Reminder* get_reminder_at(int index) {
+  return _get_reminder_at(index, reminders);
+}
+
+// static void* iso_realloc(void* ptr, size_t size) {
+//   if (ptr != NULL) {
+//     return realloc(ptr, size);
+//   } else {
+//     return malloc(size);
+//   }
+// }
+
+void reminders_add_reminder(struct Reminder new_reminder) {
+  ReminderList_insert_sorted(&reminders, new_reminder);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "reminders_add_reminder() ran, new size: %i", ReminderList_size(reminders));
+  reminder_count++;
 }
 
 void reminders_delete_reminder(int index) {
+  struct Reminder deleted;
+  ReminderList_delete_at(&reminders, index, &deleted);
+  //FIXME should never go below 0
   reminder_count--;
 }
 
 void persist_reminders() {
-  for (int i = 0; i < reminder_count; i++) {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_write(%i, reminder)", PERSIST_REMINDERS_START_KEY + i);
+  struct ReminderList * pointer = reminders;
+  int mem_key = PERSIST_REMINDERS_START_KEY;
+  while (pointer != NULL) {
     persist_write_data(
-      PERSIST_REMINDERS_START_KEY + i,
-      reminders[i],
+      mem_key,
+      &(pointer->reminder),
       sizeof(struct Reminder)
     );
+    pointer = pointer->next;
+    mem_key++;
   }
 
-  int i = PERSIST_REMINDERS_START_KEY + reminder_count;
-  while (persist_exists(i) && i < PERSIST_REMINDERS_END_KEY) {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_delete(%i)", i);
-    persist_delete(PERSIST_REMINDERS_START_KEY + i);
-    i++;
+  while (persist_exists(mem_key) && mem_key <= PERSIST_REMINDERS_END_KEY) {
+    persist_delete(mem_key);
+    mem_key++;
   }
 
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_write(%i, %i)", PERSIST_REMINDERS_COUNT_KEY, reminder_count);
-  persist_write_int(PERSIST_REMINDERS_COUNT_KEY, reminder_count);
+  persist_write_int(PERSIST_REMINDERS_COUNT_KEY, get_reminder_count());
 }
 
 void free_reminders() {
-  for (int i = 0; i < reminder_count; i++) {
-    free(reminders[i]);
-  }
-  free(reminders);
+  ReminderList_free(reminders);
 }

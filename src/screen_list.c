@@ -6,13 +6,14 @@
 
 static Window *window;
 static MenuLayer *s_menu_layer;
-static ActionMenu *reminder_action_menu;
 static StatusBarLayer *status_bar_layer;
+static ActionMenu *reminder_action_menu;
+static ActionMenuLevel *reminder_root_level;
 static char menu_title_str[50];
 static char menu_subtitle_str[50];
 
 static void format_time(time_t timestamp, char * string) {
-  strftime(string, 17, "%k:%M %e-%m-%Y", localtime(&timestamp));
+  strftime(string, 20, "%k:%M:%S %e-%m-%Y", localtime(&timestamp));
 }
 
 static void draw_add_button_menu_item(GContext *ctx, const Layer *cell_layer) {
@@ -27,47 +28,69 @@ static void draw_reminder_menu_item(GContext *ctx, const Layer *cell_layer, stru
 }
 
 static void draw_row(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context) {
-  if (cell_index->section != 0) { return; }
-  if (cell_index->row > get_reminder_count()) { return; }
-  else if (cell_index->row == 0) {
-    draw_add_button_menu_item(ctx, cell_layer);
+  switch(cell_index->section) {
+    case 0:
+      draw_add_button_menu_item(ctx, cell_layer);
+      break;
+    case 1:
+      if (cell_index->row >= get_reminder_count()) { return; }
+      struct Reminder * reminder = get_reminder_at(cell_index->row);
+      draw_reminder_menu_item(ctx, cell_layer, reminder);
+      break;
+    default:
+      return;
   }
-  else {
-    struct Reminder * reminder = get_reminders()[cell_index->row - 1];
-    draw_reminder_menu_item(ctx, cell_layer, reminder);
-  }
+}
+
+static uint16_t get_num_sections(struct MenuLayer *menu_layer, void *callback_context) {
+  return 2;
 }
 
 static uint16_t get_num_rows(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
   switch(section_index) {
-    case 0: return get_reminder_count() + 1;
+    case 0: return 1;
+    case 1: return get_reminder_count();
     default: return 0;
   }
 }
 
 static void reminder_action_menu_delete(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
-  reminders_delete_reminder(0);
+  MenuIndex selected = menu_layer_get_selected_index(s_menu_layer);
+  reminders_delete_reminder(selected.row);
+}
+
+static void show_action_menu(int clicked_index) {
+  ActionMenuConfig config = (ActionMenuConfig){
+    .root_level = reminder_root_level,
+    .colors = {
+      .background = GColorChromeYellow,
+      .foreground = GColorBlack,
+    },
+    .align = ActionMenuAlignCenter
+    // .align = ,
+    // .context = ,
+    // .did_close = ,
+    // .will_close = ,
+  };
+  reminder_action_menu = action_menu_open(&config);
 }
 
 static void select_click(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
-  if (cell_index->section != 0) { return; }
-  if (cell_index->row > get_reminder_count()) { return; }
-  else if (cell_index->row == 0) {
-    screen_add_show();
+  switch(cell_index->section) {
+    case 0:
+      screen_add_show();
+      break;
+    case 1:
+      show_action_menu(cell_index->row);
+      break;
+    default:
+      return;
   }
-  else {
-    ActionMenuLevel* root_level = action_menu_level_create(1);
-    action_menu_level_add_action(root_level, "Delete", reminder_action_menu_delete, NULL);
-    ActionMenuConfig* config = &(ActionMenuConfig){
-      // .align = ,
-      // .colors = ,
-      // .context = ,
-      // .did_close = ,
-      .root_level = root_level,
-      // .will_close = ,
-    };
-    reminder_action_menu = action_menu_open(config);
-  }
+}
+
+static void init_reminder_action_menu() {
+  reminder_root_level = action_menu_level_create(1);
+  action_menu_level_add_action(reminder_root_level, "Delete", reminder_action_menu_delete, NULL);
 }
 
 static void window_load(Window *window) {
@@ -84,16 +107,20 @@ static void window_load(Window *window) {
   menu_layer_set_click_config_onto_window(s_menu_layer, window);
   menu_layer_set_callbacks(s_menu_layer, NULL, (MenuLayerCallbacks){
     .draw_row = draw_row,
+    .get_num_sections = get_num_sections,
     .get_num_rows = get_num_rows,
     .select_click = select_click
   });
   layer_add_child(window_layer, menu_layer_get_layer(s_menu_layer));
+
+  init_reminder_action_menu();
 }
 
 static void window_unload(Window *window) {
   menu_layer_destroy(s_menu_layer);
   status_bar_layer_destroy(status_bar_layer);
   window_destroy(window);
+  action_menu_hierarchy_destroy(reminder_root_level, NULL, NULL);
 }
 
 static void window_appear(Window *window) {
