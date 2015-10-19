@@ -3,18 +3,15 @@
 #include <reminder.h>
 #include <reminder_list.h>
 
-static struct ReminderList *reminders;
-static int reminder_count = -1;
+static struct ReminderList* reminders;
 
 void load_reminders() {
   static bool loaded = false;
   if (loaded) { return; }
 
+  int reminder_count = 0;
   if (persist_exists(PERSIST_REMINDERS_COUNT_KEY)) {
     reminder_count = persist_read_int(PERSIST_REMINDERS_COUNT_KEY);
-  }
-  else {
-    reminder_count = 0;
   }
 
   reminders = ReminderList_create();
@@ -27,56 +24,31 @@ void load_reminders() {
       &reminder,
       sizeof(reminder)
     );
-    ReminderList_unshift(&reminders, reminder);
+    ReminderList_unshift(reminders, reminder);
   }
   loaded = true;
 }
 
-static int refresh_reminder_count(bool refresh) {
-  if (reminder_count == -1 || refresh) {
-    reminder_count = ReminderList_size(reminders);
-  }
-  return reminder_count;
-}
-
 int get_reminder_count() {
-  return refresh_reminder_count(false);
+  return ReminderList_size(reminders);
 }
 
-struct ReminderList* get_reminders() {
-  return reminders;
+void get_reminder_at(int index, struct Reminder* result) {
+  ReminderList_get_reminder_at(reminders, index, result);
 }
 
-struct Reminder* _get_reminder_at(int index, struct ReminderList * list) {
-  if (list == NULL) {
-    return NULL;
-  }
-  else if (index == 0) {
-    return &(list->reminder);
-  }
-  else {
-    return _get_reminder_at(index-1, list->next);
-  }
-}
-
-struct Reminder* get_reminder_at(int index) {
-  return _get_reminder_at(index, reminders);
-}
 
 void reminders_add_reminder(struct Reminder new_reminder) {
-  ReminderList_insert_sorted(&reminders, new_reminder);
-  reminder_count++;
+  ReminderList_insert_sorted(reminders, new_reminder);
 }
 
 void reminders_delete_reminder(int index) {
   struct Reminder deleted;
-  ReminderList_delete_at(&reminders, index, &deleted);
-  //FIXME should never go below 0
-  reminder_count--;
+  ReminderList_delete_at(reminders, index, &deleted);
 }
 
 void persist_reminders() {
-  struct ReminderList * pointer = reminders;
+  struct ReminderNode * pointer = reminders->head;
   int mem_key = PERSIST_REMINDERS_START_KEY;
   while (pointer != NULL) {
     persist_write_data(

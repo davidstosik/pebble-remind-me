@@ -34,8 +34,9 @@ static void draw_row(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_ind
       break;
     case 1:
       if (cell_index->row >= get_reminder_count()) { return; }
-      struct Reminder * reminder = get_reminder_at(cell_index->row);
-      draw_reminder_menu_item(ctx, cell_layer, reminder);
+      struct Reminder reminder;
+      get_reminder_at(cell_index->row, &reminder);
+      draw_reminder_menu_item(ctx, cell_layer, &reminder);
       break;
     default:
       return;
