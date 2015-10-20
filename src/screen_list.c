@@ -59,12 +59,15 @@ static void reminder_action_menu_delete(ActionMenu *action_menu, const ActionMen
   ReminderList_delete_at(all_reminders, selected.row, &deleted);
 }
 
+static void reminder_action_menu_details(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
+}
+
 static void show_action_menu(int clicked_index) {
   ActionMenuConfig config = (ActionMenuConfig){
     .root_level = reminder_root_level,
     .colors = {
-      .background = GColorChromeYellow,
-      .foreground = GColorBlack,
+      .background = APP_HL_COLOR,
+      .foreground = APP_FG_COLOR,
     },
     .align = ActionMenuAlignCenter
     // .align = ,
