@@ -3,6 +3,7 @@
 #include <reminder.h>
 #include <persistence.h>
 #include <screen_add.h>
+#include <timestamp_format.h>
 
 static Window *window;
 static MenuLayer *s_menu_layer;
@@ -12,18 +13,14 @@ static ActionMenuLevel *reminder_root_level;
 static char menu_title_str[50];
 static char menu_subtitle_str[50];
 
-static void format_time(time_t timestamp, char * string) {
-  strftime(string, 20, "%k:%M:%S %e-%m-%Y", localtime(&timestamp));
-}
-
 static void draw_add_button_menu_item(GContext *ctx, const Layer *cell_layer) {
   GRect box = layer_get_frame(cell_layer);
   graphics_draw_text(ctx, "+", fonts_get_system_font(FONT_KEY_GOTHIC_28), box, GTextOverflowModeFill, GTextAlignmentCenter, NULL);
 }
 
 static void draw_reminder_menu_item(GContext *ctx, const Layer *cell_layer, struct Reminder *reminder) {
-  format_time(reminder->created_at, menu_title_str);
-  format_time(reminder->remind_at, menu_subtitle_str);
+  format_timestamp(reminder->created_at, menu_title_str);
+  format_timestamp(reminder->remind_at, menu_subtitle_str);
   menu_cell_basic_draw(ctx, cell_layer, menu_title_str, menu_subtitle_str, NULL);
 }
 
