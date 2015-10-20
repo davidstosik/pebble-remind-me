@@ -7,12 +7,17 @@
 
 static void init(void) {
   load_reminders();
-  screen_list_show();
 
-  //TODO show add screen if no reminder
-  // if (get_reminder_count() == 0) {
-  //   screen_add_show();
-  // }
+  switch (launch_reason()) {
+    case APP_LAUNCH_QUICK_LAUNCH:
+      screen_add_show();
+      break;
+    case APP_LAUNCH_USER:
+      //TODO show add screen if no reminder
+    default:
+      screen_list_show();
+      break;
+  }
 }
 
 static void deinit(void) {
