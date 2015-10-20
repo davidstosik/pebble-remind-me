@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include <constants.h>
 #include <reminder.h>
+#include <reminder_list.h>
 #include <persistence.h>
 
 static Window *window;
@@ -10,11 +11,11 @@ static TextLayer *delay_text_layer;
 
 void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   int delay = 600;
-  if (get_reminder_count() > 2) {
+  if (ReminderList_size(all_reminders) > 2) {
     delay = 300;
   }
   struct Reminder new_reminder = Reminder_create(delay);
-  reminders_add_reminder(new_reminder);
+  ReminderList_insert_sorted(all_reminders, new_reminder);
   window_stack_remove(window, true);
 }
 

@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include <constants.h>
 #include <reminder.h>
+#include <reminder_list.h>
 #include <persistence.h>
 #include <screen_add.h>
 #include <timestamp_format.h>
@@ -30,9 +31,9 @@ static void draw_row(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_ind
       draw_add_button_menu_item(ctx, cell_layer);
       break;
     case 1:
-      if (cell_index->row >= get_reminder_count()) { return; }
+      if (cell_index->row >= ReminderList_size(all_reminders)) { return; }
       struct Reminder reminder;
-      get_reminder_at(cell_index->row, &reminder);
+      ReminderList_get_reminder_at(all_reminders, cell_index->row, &reminder);
       draw_reminder_menu_item(ctx, cell_layer, &reminder);
       break;
     default:
@@ -47,14 +48,15 @@ static uint16_t get_num_sections(struct MenuLayer *menu_layer, void *callback_co
 static uint16_t get_num_rows(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
   switch(section_index) {
     case 0: return 1;
-    case 1: return get_reminder_count();
+    case 1: return ReminderList_size(all_reminders);
     default: return 0;
   }
 }
 
 static void reminder_action_menu_delete(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
   MenuIndex selected = menu_layer_get_selected_index(s_menu_layer);
-  reminders_delete_reminder(selected.row);
+  struct Reminder deleted;
+  ReminderList_delete_at(all_reminders, selected.row, &deleted);
 }
 
 static void show_action_menu(int clicked_index) {

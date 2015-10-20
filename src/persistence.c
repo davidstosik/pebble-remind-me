@@ -2,8 +2,7 @@
 #include <constants.h>
 #include <reminder.h>
 #include <reminder_list.h>
-
-static struct ReminderList* reminders;
+#include <persistence.h>
 
 void load_reminders() {
   static bool loaded = false;
@@ -14,7 +13,7 @@ void load_reminders() {
     reminder_count = persist_read_int(PERSIST_REMINDERS_COUNT_KEY);
   }
 
-  reminders = ReminderList_create();
+  all_reminders = ReminderList_create();
 
   // FIXME batch reading/writing to maximise slot usage?
   for (int i = reminder_count - 1; i >= 0; i--) {
@@ -24,31 +23,13 @@ void load_reminders() {
       &reminder,
       sizeof(reminder)
     );
-    ReminderList_unshift(reminders, reminder);
+    ReminderList_unshift(all_reminders, reminder);
   }
   loaded = true;
 }
 
-int get_reminder_count() {
-  return ReminderList_size(reminders);
-}
-
-void get_reminder_at(int index, struct Reminder* result) {
-  ReminderList_get_reminder_at(reminders, index, result);
-}
-
-
-void reminders_add_reminder(struct Reminder new_reminder) {
-  ReminderList_insert_sorted(reminders, new_reminder);
-}
-
-void reminders_delete_reminder(int index) {
-  struct Reminder deleted;
-  ReminderList_delete_at(reminders, index, &deleted);
-}
-
 void persist_reminders() {
-  struct ReminderNode * pointer = reminders->head;
+  struct ReminderNode * pointer = all_reminders->head;
   int mem_key = PERSIST_REMINDERS_START_KEY;
   while (pointer != NULL) {
     persist_write_data(
@@ -65,9 +46,9 @@ void persist_reminders() {
     mem_key++;
   }
 
-  persist_write_int(PERSIST_REMINDERS_COUNT_KEY, get_reminder_count());
+  persist_write_int(PERSIST_REMINDERS_COUNT_KEY, ReminderList_size(all_reminders));
 }
 
 void free_reminders() {
-  ReminderList_free(reminders);
+  ReminderList_free(all_reminders);
 }
