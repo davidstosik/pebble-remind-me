@@ -1,10 +1,10 @@
 #include <pebble.h>
 
 #define TIME_STRING_MAX_LENGTH 20
-#define SECONDS 1
-#define MINUTES 60
-#define HOURS   (60*60)
-#define DAYS    (24*60*60)
+#define SECOND 1
+#define MINUTE 60
+#define HOUR   (60*60)
+#define DAY    (24*60*60)
 
 void format_timestamp(time_t timestamp, char * string) {
   time_t now = time(NULL);
@@ -16,21 +16,21 @@ void format_timestamp(time_t timestamp, char * string) {
     strcpy(string, "Now");
     return;
   }
-  else if (duration < 60 * SECONDS) {
+  else if (duration < 60 * SECOND) {
     format = "%is";
-    divider = SECONDS;
+    divider = SECOND;
   }
-  else if (duration < 60 * MINUTES) {
+  else if (duration < 60 * MINUTE) {
     format = "%imin";
-    divider = MINUTES;
+    divider = MINUTE;
   }
-  else if (duration < 24 * HOURS) {
+  else if (duration < 24 * HOUR) {
     format = "%ih";
-    divider = HOURS;
+    divider = HOUR;
   }
-  else if (duration < 7 * DAYS) {
+  else if (duration < 7 * DAY) {
     format = "%i days";
-    divider = DAYS;
+    divider = DAY;
   }
 
   if (divider > 0) {
