@@ -4,6 +4,7 @@
 #include <reminder_list.h>
 #include <persistence.h>
 #include <timestamp_format.h>
+#include <screen_details.h>
 
 static Window *window;
 static MenuLayer *s_menu_layer;
@@ -59,6 +60,11 @@ static void reminder_action_menu_delete(ActionMenu *action_menu, const ActionMen
 }
 
 static void reminder_action_menu_details(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
+  MenuIndex selected = menu_layer_get_selected_index(s_menu_layer);
+  struct Reminder reminder;
+  ReminderList_get_reminder_at(all_reminders, selected.row, &reminder);
+
+  screen_details_show(reminder);
 }
 
 static void show_action_menu(int clicked_index) {
@@ -112,7 +118,8 @@ static void select_click(struct MenuLayer *menu_layer, MenuIndex *cell_index, vo
 }
 
 static void init_reminder_action_menu() {
-  reminder_root_level = action_menu_level_create(1);
+  reminder_root_level = action_menu_level_create(2);
+  action_menu_level_add_action(reminder_root_level, "Details", reminder_action_menu_details, NULL);
   action_menu_level_add_action(reminder_root_level, "Delete", reminder_action_menu_delete, NULL);
 }
 
