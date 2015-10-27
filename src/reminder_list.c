@@ -146,7 +146,7 @@ static void _ReminderNode_log_names(struct ReminderNode* node, char * list_str, 
   } else {
     strcat(list_str, ", ");
   }
-  strcat(list_str, node->reminder.label);
+  strcat(list_str, node->reminder.message);
   _ReminderNode_log_names(node->next, list_str, false);
 }
 

@@ -3,7 +3,6 @@
 #include <reminder.h>
 #include <reminder_list.h>
 #include <persistence.h>
-#include <screen_add.h>
 #include <timestamp_format.h>
 
 static Window *window;
@@ -13,6 +12,7 @@ static ActionMenu *reminder_action_menu;
 static ActionMenuLevel *reminder_root_level;
 static char menu_title_str[50];
 static char menu_subtitle_str[50];
+static DictationSession *s_dictation_session;
 
 static void draw_add_button_menu_item(GContext *ctx, const Layer *cell_layer) {
   GRect box = layer_get_frame(cell_layer);
@@ -20,9 +20,8 @@ static void draw_add_button_menu_item(GContext *ctx, const Layer *cell_layer) {
 }
 
 static void draw_reminder_menu_item(GContext *ctx, const Layer *cell_layer, struct Reminder *reminder) {
-  format_timestamp(reminder->created_at, menu_title_str);
   format_timestamp(reminder->remind_at, menu_subtitle_str);
-  menu_cell_basic_draw(ctx, cell_layer, menu_title_str, menu_subtitle_str, NULL);
+  menu_cell_basic_draw(ctx, cell_layer, reminder->message, menu_subtitle_str, NULL);
 }
 
 static void draw_row(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context) {
@@ -78,10 +77,31 @@ static void show_action_menu(int clicked_index) {
   reminder_action_menu = action_menu_open(&config);
 }
 
+static void dictation_session_callback(DictationSession *session, DictationSessionStatus status, char *transcription, void *context) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "Dictation status: %d", (int)status);
+  APP_LOG(APP_LOG_LEVEL_INFO, "Dictation message: %s", transcription);
+  switch(status) {
+    case 0: {
+      struct Reminder new_reminder = Reminder_create(transcription);
+      ReminderList_insert_sorted(all_reminders, new_reminder);
+      // dictation_session_stop(s_dictation_session);
+      menu_layer_reload_data(s_menu_layer);
+      break;
+    }
+    case 1:
+      // Dismissed.
+      break;
+    default:
+      //error;
+      break;
+  }
+  free(transcription);
+}
+
 static void select_click(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
   switch(cell_index->section) {
     case 0:
-      screen_add_show();
+      dictation_session_start(s_dictation_session);
       break;
     case 1:
       show_action_menu(cell_index->row);
@@ -117,20 +137,25 @@ static void window_load(Window *window) {
   layer_add_child(window_layer, menu_layer_get_layer(s_menu_layer));
 
   init_reminder_action_menu();
+
+  s_dictation_session = dictation_session_create(REMINDER_MESSAGE_MAX_LENGTH, dictation_session_callback, NULL);
 }
 
 static void window_unload(Window *window) {
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "window_unload() was called");
   menu_layer_destroy(s_menu_layer);
   status_bar_layer_destroy(status_bar_layer);
   window_destroy(window);
   action_menu_hierarchy_destroy(reminder_root_level, NULL, NULL);
+  dictation_session_destroy(s_dictation_session);
 }
 
 static void window_appear(Window *window) {
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "window_appear() was called");
   menu_layer_reload_data(s_menu_layer);
 }
 
-void screen_list_show() {
+void screen_list_show(bool start_dictation) {
   window = window_create();
   window_set_window_handlers(window, (WindowHandlers) {
     .load = window_load,
@@ -139,4 +164,8 @@ void screen_list_show() {
   });
 
   window_stack_push(window, true);
+
+  if (start_dictation) {
+    dictation_session_start(s_dictation_session);
+  }
 }

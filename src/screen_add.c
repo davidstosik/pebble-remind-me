@@ -9,17 +9,13 @@ static StatusBarLayer *status_bar_layer;
 static ActionBarLayer *action_bar_layer;
 static TextLayer *delay_text_layer;
 
-void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-  int delay = 600;
-  if (ReminderList_size(all_reminders) > 2) {
-    delay = 300;
-  }
-  struct Reminder new_reminder = Reminder_create(delay);
+static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+  struct Reminder new_reminder = Reminder_create("");
   ReminderList_insert_sorted(all_reminders, new_reminder);
   window_stack_remove(window, true);
 }
 
-void click_config_provider(void *context) {
+static void click_config_provider(void *context) {
   window_single_click_subscribe(BUTTON_ID_SELECT, (ClickHandler) select_click_handler);
   // window_single_click_subscribe(BUTTON_ID_UP, (ClickHandler) my_previous_click_handler);
 }

@@ -10,12 +10,12 @@ static void init(void) {
 
   switch (launch_reason()) {
     case APP_LAUNCH_QUICK_LAUNCH:
-      screen_add_show();
+      screen_list_show(true);
       break;
     case APP_LAUNCH_USER:
       //TODO show add screen if no reminder
     default:
-      screen_list_show();
+      screen_list_show(false);
       break;
   }
 }
