@@ -13,19 +13,19 @@ void format_timestamp(time_t timestamp, char * string) {
   int divider = 0;
 
   if (duration == 0) {
-    strcpy(string, "Now");
+    strcpy(string, "Just now");
     return;
   }
   else if (duration < 60 * SECOND) {
-    format = "%is";
+    format = "%i seconds";
     divider = SECOND;
   }
   else if (duration < 60 * MINUTE) {
-    format = "%imin";
+    format = "%i minutes";
     divider = MINUTE;
   }
   else if (duration < 24 * HOUR) {
-    format = "%ih";
+    format = "%i hours";
     divider = HOUR;
   }
   else if (duration < 7 * DAY) {
@@ -48,6 +48,6 @@ void format_timestamp(time_t timestamp, char * string) {
     snprintf(string, TIME_STRING_MAX_LENGTH, full_format, value);
   }
   else {
-    strftime(string, TIME_STRING_MAX_LENGTH, "%k:%M:%S %e-%m-%Y", localtime(&timestamp));
+    strftime(string, TIME_STRING_MAX_LENGTH, "%b %e %Y", localtime(&timestamp));
   }
 }
