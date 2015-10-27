@@ -1,7 +1,7 @@
 #pragma once
 #include <pebble.h>
 
-#define REMINDER_MESSAGE_MAX_LENGTH 64
+#define REMINDER_MESSAGE_MAX_LENGTH 192
 
 struct Reminder {
   time_t created_at;
