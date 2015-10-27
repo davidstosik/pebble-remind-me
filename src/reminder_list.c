@@ -107,10 +107,13 @@ static struct ReminderNode** _ReminderNode_get_reminder_node_at(struct ReminderN
   }
 }
 
-void ReminderList_get_reminder_at(struct ReminderList* list, int index, struct Reminder* result) {
+struct Reminder* ReminderList_get_reminder_at(struct ReminderList* list, int index) {
   struct ReminderNode** picked = _ReminderNode_get_reminder_node_at(&(list->head), index);
   if (picked) {
-    *result = (*picked)->reminder;
+    return &((*picked)->reminder);
+  }
+  else {
+    return NULL;
   }
 }
 

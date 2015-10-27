@@ -32,9 +32,8 @@ static void draw_row(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_ind
       break;
     case 1:
       if (cell_index->row >= ReminderList_size(all_reminders)) { return; }
-      struct Reminder reminder;
-      ReminderList_get_reminder_at(all_reminders, cell_index->row, &reminder);
-      draw_reminder_menu_item(ctx, cell_layer, &reminder);
+      struct Reminder* reminder = ReminderList_get_reminder_at(all_reminders, cell_index->row);
+      draw_reminder_menu_item(ctx, cell_layer, reminder);
       break;
     default:
       return;
@@ -61,8 +60,7 @@ static void reminder_action_menu_delete(ActionMenu *action_menu, const ActionMen
 
 static void reminder_action_menu_details(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
   MenuIndex selected = menu_layer_get_selected_index(s_menu_layer);
-  struct Reminder reminder;
-  ReminderList_get_reminder_at(all_reminders, selected.row, &reminder);
+  struct Reminder* reminder = ReminderList_get_reminder_at(all_reminders, selected.row	);
 
   screen_details_show(reminder);
 }

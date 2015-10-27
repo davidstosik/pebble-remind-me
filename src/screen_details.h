@@ -2,4 +2,4 @@
 #include <pebble.h>
 #include <reminder.h>
 
-void screen_details_show(struct Reminder reminder);
+void screen_details_show(struct Reminder* reminder);
