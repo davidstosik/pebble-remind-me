@@ -88,7 +88,6 @@ static void dictation_session_callback(DictationSession *session, DictationSessi
     case 0: {
       struct Reminder new_reminder = Reminder_create(transcription);
       ReminderList_insert_sorted(all_reminders, new_reminder);
-      // dictation_session_stop(s_dictation_session);
       menu_layer_reload_data(s_menu_layer);
       break;
     }
@@ -102,10 +101,17 @@ static void dictation_session_callback(DictationSession *session, DictationSessi
   free(transcription);
 }
 
+static void init_dictation() {
+  if (!s_dictation_session) {
+    s_dictation_session = dictation_session_create(REMINDER_MESSAGE_MAX_LENGTH, dictation_session_callback, NULL);
+  }
+  dictation_session_start(s_dictation_session);
+}
+
 static void select_click(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
   switch(cell_index->section) {
     case 0:
-      dictation_session_start(s_dictation_session);
+      init_dictation();
       break;
     case 1:
       show_action_menu(cell_index->row);
@@ -142,8 +148,6 @@ static void window_load(Window *window) {
   layer_add_child(window_layer, menu_layer_get_layer(s_menu_layer));
 
   init_reminder_action_menu();
-
-  s_dictation_session = dictation_session_create(REMINDER_MESSAGE_MAX_LENGTH, dictation_session_callback, NULL);
 }
 
 static void window_unload(Window *window) {
@@ -171,6 +175,6 @@ void screen_list_show(bool start_dictation) {
   window_stack_push(window, true);
 
   if (start_dictation) {
-    dictation_session_start(s_dictation_session);
+    init_dictation();
   }
 }
