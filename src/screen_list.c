@@ -101,17 +101,10 @@ static void dictation_session_callback(DictationSession *session, DictationSessi
   free(transcription);
 }
 
-static void init_dictation() {
-  if (!s_dictation_session) {
-    s_dictation_session = dictation_session_create(REMINDER_MESSAGE_MAX_LENGTH, dictation_session_callback, NULL);
-  }
-  dictation_session_start(s_dictation_session);
-}
-
 static void select_click(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
   switch(cell_index->section) {
     case 0:
-      init_dictation();
+      dictation_session_start(s_dictation_session);
       break;
     case 1:
       show_action_menu(cell_index->row);
@@ -147,6 +140,8 @@ static void window_load(Window *window) {
   });
   layer_add_child(window_layer, menu_layer_get_layer(s_menu_layer));
 
+  s_dictation_session = dictation_session_create(REMINDER_MESSAGE_MAX_LENGTH, dictation_session_callback, NULL);
+
   init_reminder_action_menu();
 }
 
@@ -175,6 +170,6 @@ void screen_list_show(bool start_dictation) {
   window_stack_push(window, true);
 
   if (start_dictation) {
-    init_dictation();
+    dictation_session_start(s_dictation_session);
   }
 }
