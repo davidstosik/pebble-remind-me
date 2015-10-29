@@ -3,7 +3,6 @@
 #include <reminder.h>
 #include <persistence.h>
 #include <screen_list.h>
-#include <screen_add.h>
 
 static void init(void) {
   load_reminders();
