@@ -1,10 +1,13 @@
 #include <pebble.h>
 #include <constants.h>
+#include <updates.h>
 #include <reminder.h>
 #include <persistence.h>
 #include <screen_list.h>
 
 static void init(void) {
+  check_updates();
+
   load_reminders();
 
   switch (launch_reason()) {
