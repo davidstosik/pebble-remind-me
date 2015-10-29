@@ -13,6 +13,22 @@
     "dummy": 0
   },
   "resources": {
-    "media": []
+    "media": [
+      {
+        "type": "png",
+        "name": "ICON_UP",
+        "file": "images/icon_up.png"
+      },
+      {
+        "type": "png",
+        "name": "ICON_DOWN",
+        "file": "images/icon_down.png"
+      },
+      {
+        "type": "png",
+        "name": "ICON_ELLIPSIS",
+        "file": "images/icon_ellipsis.png"
+      }
+    ]
   }
 }
