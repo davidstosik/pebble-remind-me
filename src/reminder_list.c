@@ -129,6 +129,26 @@ void ReminderList_delete_at(struct ReminderList* list, int index, struct Reminde
   }
 }
 
+static bool _ReminderNode_delete(struct ReminderNode** node, struct Reminder* reminder) {
+  if ((*node) == NULL) {
+    return false;
+  }
+  else if ((*node)->reminder.created_at == reminder->created_at) {
+    struct Reminder deleted;
+    _ReminderNode_shift(node, &deleted);
+    return true;
+  }
+  else {
+    return _ReminderNode_delete(&((*node)->next), reminder);
+  }
+}
+
+void ReminderList_delete(struct ReminderList* list, struct Reminder* reminder) {
+  if (_ReminderNode_delete(&(list->head), reminder)) {
+    list->size--;
+  }
+}
+
 static void _ReminderNode_free(struct ReminderNode* node) {
   if (node) {
     _ReminderNode_free(node->next);

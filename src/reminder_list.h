@@ -20,5 +20,6 @@ void ReminderList_pop(struct ReminderList* list, struct Reminder* result);
 void ReminderList_insert_sorted(struct ReminderList* list, struct Reminder reminder);
 struct Reminder* ReminderList_get_reminder_at(struct ReminderList* list, int index);
 void ReminderList_delete_at(struct ReminderList* list, int index, struct Reminder* deleted);
+void ReminderList_delete(struct ReminderList* list, struct Reminder* reminder);
 void ReminderList_free(struct ReminderList* list);
 void ReminderList_log_names(struct ReminderList* list);
