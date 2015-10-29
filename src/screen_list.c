@@ -9,8 +9,6 @@
 static Window *window;
 static MenuLayer *s_menu_layer;
 static StatusBarLayer *status_bar_layer;
-static ActionMenu *reminder_action_menu;
-static ActionMenuLevel *reminder_root_level;
 static char menu_title_str[50];
 static char menu_subtitle_str[50];
 static DictationSession *s_dictation_session;
@@ -52,35 +50,6 @@ static uint16_t get_num_rows(struct MenuLayer *menu_layer, uint16_t section_inde
   }
 }
 
-static void reminder_action_menu_delete(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
-  MenuIndex selected = menu_layer_get_selected_index(s_menu_layer);
-  struct Reminder deleted;
-  ReminderList_delete_at(all_reminders, selected.row, &deleted);
-}
-
-static void reminder_action_menu_details(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
-  MenuIndex selected = menu_layer_get_selected_index(s_menu_layer);
-  struct Reminder* reminder = ReminderList_get_reminder_at(all_reminders, selected.row	);
-
-  screen_details_show(reminder);
-}
-
-static void show_action_menu(int clicked_index) {
-  ActionMenuConfig config = (ActionMenuConfig){
-    .root_level = reminder_root_level,
-    .colors = {
-      .background = APP_HL_COLOR,
-      .foreground = APP_FG_COLOR,
-    },
-    .align = ActionMenuAlignCenter
-    // .align = ,
-    // .context = ,
-    // .did_close = ,
-    // .will_close = ,
-  };
-  reminder_action_menu = action_menu_open(&config);
-}
-
 static void dictation_session_callback(DictationSession *session, DictationSessionStatus status, char *transcription, void *context) {
   APP_LOG(APP_LOG_LEVEL_INFO, "Dictation status: %d", (int)status);
   APP_LOG(APP_LOG_LEVEL_INFO, "Dictation message: %s", transcription);
@@ -106,18 +75,14 @@ static void select_click(struct MenuLayer *menu_layer, MenuIndex *cell_index, vo
     case 0:
       dictation_session_start(s_dictation_session);
       break;
-    case 1:
-      show_action_menu(cell_index->row);
+    case 1: {
+      struct Reminder* reminder = ReminderList_get_reminder_at(all_reminders, cell_index->row);
+      screen_details_show(reminder);
       break;
+    }
     default:
       return;
   }
-}
-
-static void init_reminder_action_menu() {
-  reminder_root_level = action_menu_level_create(2);
-  action_menu_level_add_action(reminder_root_level, "Details", reminder_action_menu_details, NULL);
-  action_menu_level_add_action(reminder_root_level, "Delete", reminder_action_menu_delete, NULL);
 }
 
 static void window_load(Window *window) {
@@ -141,8 +106,6 @@ static void window_load(Window *window) {
   layer_add_child(window_layer, menu_layer_get_layer(s_menu_layer));
 
   s_dictation_session = dictation_session_create(REMINDER_MESSAGE_MAX_LENGTH, dictation_session_callback, NULL);
-
-  init_reminder_action_menu();
 }
 
 static void window_unload(Window *window) {
@@ -150,7 +113,6 @@ static void window_unload(Window *window) {
   menu_layer_destroy(s_menu_layer);
   status_bar_layer_destroy(status_bar_layer);
   window_destroy(window);
-  action_menu_hierarchy_destroy(reminder_root_level, NULL, NULL);
   dictation_session_destroy(s_dictation_session);
 }
 
