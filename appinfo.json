@@ -15,6 +15,12 @@
   "resources": {
     "media": [
       {
+        "menuIcon": true,
+        "type": "png",
+        "name": "IMAGE_MENU_ICON",
+        "file": "images/menu_icon.png"
+      },
+      {
         "type": "png",
         "name": "ICON_UP",
         "file": "images/icon_up.png"
