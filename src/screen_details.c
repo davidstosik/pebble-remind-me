@@ -120,7 +120,7 @@ static void window_load(Window *window) {
   content_indicator = scroll_layer_get_content_indicator(scroll_layer);
 
   date_layer = text_layer_create((GRect){.origin = bounds.origin, .size = GSize(bounds.size.w, DATE_HEIGHT)});
-  strftime(time_date_str, sizeof(time_date_str), "%Y/%m/%e\n%k:%M:%S", localtime(&(reminder->created_at)));
+  strftime(time_date_str, sizeof(time_date_str), "%Y/%m/%d\n%k:%M:%S", localtime(&(reminder->created_at)));
   text_layer_set_font(date_layer, fonts_get_system_font(DATE_FONT));
   text_layer_set_text_alignment(date_layer, GTextAlignmentCenter);
   text_layer_set_text(date_layer, time_date_str);
