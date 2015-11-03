@@ -10,6 +10,12 @@
 #define TEXT_INSET         2
 #define TEXT_BOTTOM_MARGIN 4
 
+#ifdef PBL_ROUND
+  #define FULL_TIMESTAMP     "%k:%M:%S\n%Y/%m/%d"
+#else
+  #define FULL_TIMESTAMP     "%Y/%m/%d\n%k:%M:%S"
+#endif
+
 static Window *window;
 static ScrollLayer *scroll_layer;
 static ContentIndicator * content_indicator;
@@ -120,14 +126,12 @@ static void window_load(Window *window) {
   content_indicator = scroll_layer_get_content_indicator(scroll_layer);
 
   date_layer = text_layer_create((GRect){.origin = bounds.origin, .size = GSize(bounds.size.w, DATE_HEIGHT)});
-  strftime(time_date_str, sizeof(time_date_str), "%Y/%m/%d\n%k:%M:%S", localtime(&(reminder->created_at)));
+  strftime(time_date_str, sizeof(time_date_str), FULL_TIMESTAMP, localtime(&(reminder->created_at)));
   text_layer_set_font(date_layer, fonts_get_system_font(DATE_FONT));
   text_layer_set_text_alignment(date_layer, GTextAlignmentCenter);
   text_layer_set_text(date_layer, time_date_str);
 
   bounds.origin.y += DATE_HEIGHT;
-  bounds.origin.x += TEXT_INSET;
-  bounds.size.w -= 2 * TEXT_INSET;
   bounds.size.h = 2000;
   message_layer = text_layer_create(bounds);
   text_layer_set_font(message_layer, fonts_get_system_font(MESSAGE_FONT));
@@ -138,8 +142,8 @@ static void window_load(Window *window) {
 
   layer_add_child(window_layer, scroll_layer_get_layer(scroll_layer));
 
-  // Only for Round?
-  // text_layer_enable_screen_text_flow_and_paging(message_layer, TEXT_INSET);
+  text_layer_enable_screen_text_flow_and_paging(date_layer, TEXT_INSET);
+  text_layer_enable_screen_text_flow_and_paging(message_layer, TEXT_INSET);
 
   GSize max_size = text_layer_get_content_size(message_layer);
   max_size.h += TEXT_BOTTOM_MARGIN;
