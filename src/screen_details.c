@@ -10,11 +10,7 @@
 #define TEXT_INSET         2
 #define TEXT_BOTTOM_MARGIN 4
 
-#ifdef PBL_ROUND
-  #define FULL_TIMESTAMP     "%k:%M:%S\n%Y/%m/%d"
-#else
-  #define FULL_TIMESTAMP     "%Y/%m/%d\n%k:%M:%S"
-#endif
+#define FULL_TIMESTAMP     PBL_IF_ROUND_ELSE("%k:%M:%S\n%Y/%m/%d", "%Y/%m/%d\n%k:%M:%S")
 
 static Window *window;
 static ScrollLayer *scroll_layer;
