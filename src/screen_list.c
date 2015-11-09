@@ -67,7 +67,6 @@ static void dictation_session_callback(DictationSession *session, DictationSessi
       //error;
       break;
   }
-  free(transcription);
 }
 
 static void select_click(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
