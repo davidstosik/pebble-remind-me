@@ -1,0 +1,54 @@
+{
+  "name": "RemindMe",
+  "author": "David Stosik",
+  "version": "1.3.0",
+  "keywords": ["pebble-app"],
+  "private": true,
+  "dependencies": {},
+  "pebble": {
+    "displayName": "RemindMe",
+    "uuid": "bfac59e3-70e4-4400-9d57-17290531ff99",
+    "projectType": "native",
+    "sdkVersion": "3",
+    "enableMultiJS": false,
+    "capabilities": [],
+    "targetPlatforms": [
+      "basalt",
+      "chalk",
+      "diorite"
+    ],
+    "watchapp": {
+      "onlyShownOnCommunication": false,
+      "hiddenApp": false,
+      "watchface": false
+    },
+    "messageKeys": {
+      "dummy": 0
+    },
+    "resources": {
+      "media": [
+        {
+          "menuIcon": true,
+          "type": "png",
+          "name": "IMAGE_MENU_ICON",
+          "file": "images/menu_icon.png"
+        },
+        {
+          "type": "png",
+          "name": "ICON_UP",
+          "file": "images/icon_up.png"
+        },
+        {
+          "type": "png",
+          "name": "ICON_DOWN",
+          "file": "images/icon_down.png"
+        },
+        {
+          "type": "png",
+          "name": "ICON_ELLIPSIS",
+          "file": "images/icon_ellipsis.png"
+        }
+      ]
+    }
+  }
+}
